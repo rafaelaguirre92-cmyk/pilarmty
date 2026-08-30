@@ -1,0 +1,67 @@
+import type { Metadata } from "next";
+
+import { ResourcePage } from "@/components/resource-page";
+import { getResource, getResources } from "@/lib/content";
+import { redirectOrNotFound } from "@/lib/content/navigation";
+import { absoluteUrl, localePath } from "@/lib/site";
+import { pageMetadata, safeJsonLd } from "@/lib/seo";
+
+type Props = { params: Promise<{ slug: string }> };
+
+export const revalidate = 300;
+
+export async function generateStaticParams() {
+  const resources = await getResources("es");
+  return resources.map((resource) => ({ slug: resource.slug }));
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const resource = await getResource("es", slug);
+  if (!resource) return {};
+  return pageMetadata({
+    title: resource.seoTitle || resource.title,
+    description:
+      resource.seoDescription ||
+      resource.excerpt ||
+      "Recurso de Iglesia Pilar.",
+    path: `/recursos/${slug}`,
+    locale: "es",
+    alternatePath: resource.translation
+      ? localePath("en", `/recursos/${resource.translation.slug}`)
+      : undefined,
+    canonical: resource.canonical,
+    noindex: resource.noindex,
+    image: resource.socialImage || resource.image,
+    imageAlt: resource.imageAlt || resource.title
+  });
+}
+
+export default async function Page({ params }: Props) {
+  const { slug } = await params;
+  const resource = await getResource("es", slug);
+  if (!resource) {
+    return redirectOrNotFound(`/recursos/${slug}`);
+  }
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: resource.title,
+    description: resource.seoDescription || resource.excerpt,
+    datePublished: resource.date,
+    dateModified: resource.updatedAt || resource.date,
+    inLanguage: "es-MX",
+    author: resource.author
+      ? { "@type": "Person", name: resource.author, url: resource.authorUrl }
+      : { "@type": "Organization", name: "Iglesia Pilar" },
+    image: resource.socialImage || resource.image,
+    publisher: { "@type": "Organization", name: "Iglesia Pilar", url: absoluteUrl("/"), logo: { "@type": "ImageObject", url: absoluteUrl("/brand/iglesia-pilar.png") } },
+    mainEntityOfPage: absoluteUrl(`/recursos/${slug}`)
+  };
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }} />
+      <ResourcePage locale="es" slug={slug} />
+    </>
+  );
+}

@@ -1,0 +1,49 @@
+{
+  "name": "iglesia-pilar",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build --webpack",
+    "start": "next start",
+    "lint": "eslint .",
+    "test": "node --test --import tsx tests/**/*.test.ts",
+    "payload": "payload",
+    "payload:types": "payload generate:types",
+    "payload:importmap": "payload generate:importmap",
+    "payload:migrate": "payload migrate",
+    "payload:repair-db": "tsx scripts/repair-payload-schema.ts",
+    "payload:add-notion-columns": "tsx scripts/add-notion-sync-columns.ts",
+    "content:migrate": "tsx scripts/migrate-content.ts",
+    "content:migrate:dry": "tsx scripts/migrate-content.ts --dry-run",
+    "localization:migrate": "tsx scripts/migrate-localization.ts",
+    "localization:migrate:dry": "tsx scripts/migrate-localization.ts --dry-run"
+  },
+  "dependencies": {
+    "@payloadcms/db-postgres": "3.87.0",
+    "@payloadcms/db-sqlite": "3.87.0",
+    "@payloadcms/email-resend": "3.87.0",
+    "@payloadcms/next": "3.87.0",
+    "@payloadcms/richtext-lexical": "3.87.0",
+    "@payloadcms/storage-vercel-blob": "3.87.0",
+    "@upstash/qstash": "2.8.4",
+    "@vercel/blob": "^1.1.1",
+    "graphql": "16.11.0",
+    "next": "16.2.11",
+    "payload": "3.87.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "sharp": "0.34.5",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.2",
+    "eslint-config-next": "^16.1.6",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}
