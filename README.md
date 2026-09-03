@@ -21,6 +21,7 @@ solo el primer usuario puede registrarse sin una sesión existente.
 - `DATABASE_URL`: conexión pooled de Neon.
 - `PAYLOAD_SECRET`: secreto aleatorio largo y exclusivo de producción.
 - `BLOB_READ_WRITE_TOKEN`: almacenamiento de Vercel Blob.
+- `BIBLE_API_KEY`: contenido de los tooltips de referencias bíblicas.
 - `RESEND_API_KEY` y `PAYLOAD_FROM_EMAIL`: recuperación de contraseñas.
 - `QSTASH_TOKEN`, `QSTASH_CURRENT_SIGNING_KEY` y
   `QSTASH_NEXT_SIGNING_KEY`: publicaciones programadas.
