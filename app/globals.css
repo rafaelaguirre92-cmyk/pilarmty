@@ -1733,7 +1733,7 @@ h3 em {
   display: block;
   flex: 0 0 var(--series-card-width);
   overflow: hidden;
-  aspect-ratio: 1;
+  aspect-ratio: 16 / 9;
   border: 1px solid rgba(240, 236, 233, 0.24);
   border-radius: var(--radius-lg);
   background: var(--teal);
@@ -5915,9 +5915,9 @@ body.resource-filters-open {
 
 .resources-hero-latest-copy {
   display: flex;
-  min-height: 152px;
+  min-height: 120px;
   flex-direction: column;
-  padding: 24px 28px;
+  padding: 18px 24px;
 }
 
 .resources-hero-latest-copy h3 {
@@ -5929,6 +5929,7 @@ body.resource-filters-open {
 }
 
 .resources-hero-latest-copy .card-meta {
+  padding-top: 16px;
   color: #53616e;
 }
 
@@ -6846,7 +6847,7 @@ body.resource-filters-open {
   }
 
   .home-series-card {
-    aspect-ratio: 1;
+    aspect-ratio: 16 / 9;
   }
 
   .split-heading {
