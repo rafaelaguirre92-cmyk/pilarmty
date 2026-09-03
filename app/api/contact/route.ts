@@ -7,6 +7,7 @@ const payloadSchema = z
     email: z.union([z.email().max(254), z.literal("")]).optional().default(""),
     phone: z.string().trim().max(40).optional().default(""),
     zone: z.string().trim().max(100).optional().default(""),
+    community: z.string().trim().max(160).optional().default(""),
     consent: z.string().trim().max(20).optional().default(""),
     formType: z.enum(["contact", "community"]).optional().default("contact"),
     message: z.string().trim().min(10).max(5000),
@@ -17,8 +18,6 @@ const payloadSchema = z
 
     if (
       !data.phone ||
-      !data.zone ||
-      data.consent !== "accepted" ||
       data.lastName.trim().length < 2 ||
       !/^\d{10,15}$/.test(data.phone)
     ) {
@@ -83,10 +82,8 @@ export async function POST(request: Request) {
         `Nombre: ${parsed.name} ${parsed.lastName}`.trim(),
         `Correo: ${parsed.email || "No proporcionado"}`,
         `Teléfono: ${parsed.phone || "No proporcionado"}`,
+        ...(parsed.community ? [`Comunidad de interés: ${parsed.community}`] : []),
         ...(parsed.zone ? [`Zona: ${parsed.zone}`] : []),
-        ...(parsed.formType === "community"
-          ? [`Consentimiento de contacto: ${parsed.consent === "accepted" ? "Sí" : "No"}`]
-          : []),
         "",
         parsed.message
       ].join("\n")

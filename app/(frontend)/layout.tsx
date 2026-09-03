@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 
 import { Analytics } from "@/components/analytics";
+import { ScrollParallax } from "@/components/scroll-parallax";
 import { ThemeFavicon } from "@/components/theme-favicon";
 import { absoluteUrl, SITE_NAME } from "@/lib/site";
 
@@ -44,6 +45,7 @@ export default function RootLayout({
         <Script id="pilar-theme" strategy="beforeInteractive">
           {`(function(){try{var saved=localStorage.getItem("pilar-theme");var theme=saved==="dark"||saved==="light"?saved:(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.dataset.theme=theme}catch(e){document.documentElement.dataset.theme="light"}})();`}
         </Script>
+        <ScrollParallax />
         {children}
         <Analytics />
       </body>

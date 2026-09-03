@@ -30,7 +30,7 @@ export function CreateContentView(props: AdminViewServerProps) {
           </Link>
           <p className="creator-eyebrow">Nueva publicación</p>
           <h1>¿Qué deseas crear?</h1>
-          <p className="creator-lede">Elige un formato. Después te guiaremos por contenido, medios y metadatos.</p>
+          <p className="creator-lede">Elige el tipo de contenido. Después te guiaremos por contenido, medios y metadatos.</p>
           <section aria-label="Tipos de contenido" className="creator-create-grid">
             {options.map((option, index) => (
               <Link href={option.href} key={option.href} className="creator-create-card">

@@ -15,29 +15,31 @@ import {
   afterEditorialDelete,
   guardPublishedSlug
 } from "@/cms/hooks/content";
-import { syncPayloadToNotion } from "@/cms/hooks/notion-sync";
+import { markNotionSyncPending, syncPayloadToNotion } from "@/cms/hooks/notion-sync";
 import {
   autoTranslateHook,
   markEnglishTranslationReviewed
 } from "@/cms/hooks/translate";
 import { previewUrl } from "@/cms/preview";
+import { spotifyEpisodeId } from "@/lib/spotify";
 
-function platformUrl(platform: "apple" | "youtube") {
+function platformUrl(platform: "spotify" | "youtube") {
   return (value: unknown) => {
     if (!value) return true;
     if (typeof value !== "string") return "Debe ser una URL.";
 
     try {
-      const hostname = new URL(value).hostname.replace(/^www\./, "");
       const allowed =
         platform === "youtube"
-          ? hostname === "youtube.com" || hostname === "youtu.be"
-          : hostname === "podcasts.apple.com";
+          ? ["youtube.com", "youtu.be"].includes(
+              new URL(value).hostname.replace(/^www\./, "")
+            )
+          : Boolean(spotifyEpisodeId(value));
       return allowed
         ? true
         : platform === "youtube"
           ? "Usa un enlace válido de YouTube."
-          : "Usa un enlace válido de Apple Podcasts.";
+          : "Usa un enlace válido de un episodio de Spotify.";
     } catch {
       return "Debe ser una URL absoluta válida.";
     }
@@ -46,12 +48,59 @@ function platformUrl(platform: "apple" | "youtube") {
 
 export const Teachings: CollectionConfig = {
   slug: "teachings",
+  defaultSort: "-teachingDate",
   labels: { singular: "Enseñanza", plural: "Enseñanzas" },
   admin: {
     hidden: false,
     useAsTitle: "title",
     group: "Contenido",
-    defaultColumns: ["title", "series", "teachingDate", "format", "_status"],
+    defaultColumns: ["title", "series", "author", "teachingDate", "_status"],
+    components: {
+      edit: {
+        beforeDocumentControls: [
+          {
+            path: "./cms/components/DocumentTitleEditor",
+            exportName: "DocumentTitleEditor"
+          },
+          {
+            path: "./cms/components/DocumentUrl",
+            exportName: "DocumentUrl"
+          },
+          {
+            path: "./cms/components/PublishDates",
+            exportName: "PublishDates"
+          },
+        ]
+      },
+      views: {
+        edit: {
+          default: {
+            Component: {
+              path: "./cms/components/TeachingSEOView",
+              exportName: "TeachingContentView"
+            }
+          },
+          seo: {
+            path: "/seo",
+            Component: {
+              path: "./cms/components/TeachingSEOView",
+              exportName: "TeachingSEOView"
+            },
+            tab: {
+              href: "/seo",
+              label: "SEO",
+              order: 200
+            }
+          }
+        }
+      },
+      beforeList: [
+        {
+          path: "./cms/components/ListQuickFilters",
+          exportName: "ListQuickFilters"
+        }
+      ]
+    },
     preview: previewUrl("teachings"),
     livePreview: { url: previewUrl("teachings") }
   },
@@ -67,7 +116,7 @@ export const Teachings: CollectionConfig = {
     drafts: { autosave: { interval: 2000 }, schedulePublish: true, validate: true }
   },
   hooks: {
-    beforeChange: [guardPublishedSlug, markEnglishTranslationReviewed],
+    beforeChange: [guardPublishedSlug, markNotionSyncPending, markEnglishTranslationReviewed],
     afterChange: [
       afterEditorialChange("teachings"),
       autoTranslateHook("teachings"),
@@ -77,55 +126,197 @@ export const Teachings: CollectionConfig = {
   },
   fields: [
     {
-      type: "collapsible",
-      label: "Contenido",
-      admin: { initCollapsed: false },
-      fields: [
-            { name: "title", type: "text", label: "Título", required: true, localized: true },
-            { name: "excerpt", type: "textarea", label: "Resumen", localized: true, maxLength: 500, admin: { description: "Una introducción breve para tarjetas, buscadores y redes sociales." } },
-            { name: "body", type: "richText", label: "Contenido", localized: true, editor: contentEditor }
-      ]
-    },
-    {
-      type: "collapsible",
-      label: "Detalles",
-      admin: { initCollapsed: false },
-      fields: [
-            { type: "row", fields: [{ name: "teachingDate", type: "date", label: "Fecha de la enseñanza", admin: { width: "50%", date: { pickerAppearance: "dayOnly", displayFormat: "MMMM do yyyy" } } }] },
-            { type: "row", fields: [{ name: "series", type: "relationship", relationTo: "series", label: "Serie o evento", required: true, admin: { width: "70%" } }, { name: "episode", type: "number", label: "Episodio", min: 1, admin: { width: "30%" } }] },
-            { name: "author", type: "relationship", relationTo: "authors", label: "Autor u orador" },
-            { name: "keyVerse", type: "text", label: "Versículo clave", localized: true, maxLength: 120 },
-            { name: "topics", type: "relationship", relationTo: "topics", hasMany: true, label: "Temas", admin: { description: "Usa pocos temas consistentes para mejorar navegación y búsqueda." } }
-      ]
-    },
-    {
-      type: "collapsible",
-      label: "Medios",
-      admin: { initCollapsed: false },
-      fields: [
-            { type: "row", fields: [{ name: "format", type: "select", label: "Formato principal", defaultValue: "video", options: [{ label: "Video", value: "video" }, { label: "Audio", value: "audio" }, { label: "Audio + video", value: "mixed" }, { label: "Texto", value: "text" }], admin: { width: "50%" } }, { name: "durationMinutes", type: "number", label: "Duración en minutos", min: 1, admin: { width: "50%" } }] },
-            { type: "row", fields: [
-              { name: "youtubeUrl", type: "text", label: "Video de YouTube", validate: platformUrl("youtube"), admin: { width: "50%", description: "Pega el enlace completo del video." } },
-              { name: "applePodcastsUrl", type: "text", label: "Episodio en Apple Podcasts", validate: platformUrl("apple"), admin: { width: "50%", description: "Pega el enlace completo del episodio." } }
-            ] },
-            { name: "image", type: "upload", relationTo: "media", label: "Imagen principal" },
-            { name: "mediaLinks", type: "array", label: "Audio, video y materiales", fields: [{ name: "label", type: "text", label: "Nombre", required: true }, { name: "url", type: "text", label: "URL", required: true }] }
-      ]
-    },
-    {
-      type: "collapsible",
-      label: "Distribución y SEO",
-      admin: { initCollapsed: false },
-      fields: [
-            { name: "featured", type: "checkbox", label: "Destacar en el sitio", defaultValue: false },
+      type: "tabs",
+      tabs: [
+        {
+          label: "Contenido",
+          fields: [
+            {
+              name: "title",
+              type: "text",
+              label: "Título de la enseñanza",
+              required: true,
+              localized: true
+            },
+            {
+              name: "body",
+              type: "richText",
+              label: "Notas y contenido",
+              localized: true,
+              editor: contentEditor
+            },
+          ]
+        },
+        {
+          label: "SEO y Redes",
+          fields: [
             slugField("title", true),
             seoFields,
             confirmSlugChangeField
+          ]
+        },
+        {
+          label: "Sincronización y Técnico",
+          fields: [
+            {
+              name: "legacy",
+              type: "checkbox",
+              defaultValue: false,
+              admin: {
+                description: "Marcar si pertenece a la importación legacy inicial."
+              }
+            },
+            ...notionSyncFields,
+            ...translationReviewFields,
+            ...migrationFields
+          ]
+        }
       ]
     },
-    { name: "legacy", type: "checkbox", defaultValue: false, admin: { hidden: true } },
-    ...notionSyncFields,
-    ...translationReviewFields,
-    ...migrationFields
+    // Sidebar fields (Metadata rápida)
+    {
+      name: "teachingDate",
+      type: "date",
+      label: "Fecha",
+      admin: {
+        position: "sidebar",
+        date: {
+          pickerAppearance: "dayOnly",
+          displayFormat: "MMMM do yyyy"
+        }
+      }
+    },
+    {
+      name: "series",
+      type: "relationship",
+      relationTo: "series",
+      label: "Serie o Evento",
+      required: true,
+      admin: {
+        position: "sidebar",
+        description: "Serie a la que pertenece esta enseñanza."
+      }
+    },
+    {
+      name: "episode",
+      type: "number",
+      label: "Número de episodio / capítulo",
+      min: 1,
+      admin: {
+        position: "sidebar"
+      }
+    },
+    {
+      name: "author",
+      type: "relationship",
+      relationTo: "authors",
+      label: "Orador / Autor",
+      admin: {
+        position: "sidebar",
+        components: {
+          Cell: {
+            path: "./cms/components/AuthorCell",
+            exportName: "AuthorCell"
+          }
+        }
+      }
+    },
+    {
+      name: "durationMinutes",
+      type: "number",
+      label: "Duración (minutos)",
+      min: 1,
+      admin: {
+        position: "sidebar"
+      }
+    },
+    {
+      name: "keyVerse",
+      type: "text",
+      label: "Pasaje bíblico clave",
+      localized: true,
+      maxLength: 120,
+      admin: {
+        position: "sidebar",
+        placeholder: "ej. Marcos 8:22-9:1 o Juan 3:16",
+        description: "Genera automáticamente tooltips con el texto bíblico."
+      }
+    },
+    {
+      name: "topics",
+      type: "relationship",
+      relationTo: "topics",
+      hasMany: true,
+      label: "Temas y Categorías",
+      admin: {
+        position: "sidebar",
+        description: "Temas para clasificación y búsqueda."
+      }
+    },
+    {
+      name: "excerpt",
+      type: "textarea",
+      label: "Resumen editorial",
+      localized: true,
+      maxLength: 500,
+      admin: {
+        position: "sidebar",
+        className: "creator-sidebar-section creator-sidebar-section--excerpt",
+        description:
+          "Una introducción breve para tarjetas, buscadores y redes sociales (máx. 500 caracteres)."
+      }
+    },
+    {
+      type: "group",
+      label: "Multimedia y Enlaces",
+      admin: {
+        position: "sidebar",
+        className: "creator-sidebar-section creator-sidebar-section--media"
+      },
+      fields: [
+        {
+          name: "youtubeUrl",
+          type: "text",
+          label: "Video de YouTube",
+          validate: platformUrl("youtube"),
+          admin: { placeholder: "https://www.youtube.com/watch?v=..." }
+        },
+        {
+          name: "spotifyUrl",
+          type: "text",
+          label: "Episodio en Spotify",
+          validate: platformUrl("spotify"),
+          admin: { placeholder: "https://open.spotify.com/episode/..." }
+        },
+        {
+          name: "image",
+          type: "upload",
+          relationTo: "media",
+          label: "Portada o imagen principal"
+        },
+        {
+          name: "mediaLinks",
+          type: "array",
+          label: "Recursos adjuntos",
+          labels: { singular: "Recurso", plural: "Recursos" },
+          fields: [
+            {
+              name: "label",
+              type: "text",
+              label: "Nombre del archivo / recurso",
+              required: true,
+              admin: { width: "50%" }
+            },
+            {
+              name: "url",
+              type: "text",
+              label: "Enlace o URL",
+              required: true,
+              admin: { width: "50%" }
+            }
+          ]
+        }
+      ]
+    }
   ]
 };

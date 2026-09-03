@@ -1,6 +1,15 @@
 import type { ReactNode } from "react";
+import { Fragment } from "react";
 import { RichText as PayloadRichText } from "@payloadcms/richtext-lexical/react";
 
+import {
+  articleHeadingId,
+  lexicalHeadingText,
+  notionHeadingText,
+  parseHeadingText
+} from "@/lib/article-headings";
+import { extractBibleReferences } from "@/lib/bible";
+import { ScriptureTooltip } from "@/components/scripture-tooltip";
 import type { NotionBlock, RichText } from "@/lib/types";
 
 type CmsBlockNode = {
@@ -14,10 +23,20 @@ type CmsBlockNode = {
   };
 };
 
-function richText(value: unknown): ReactNode {
+function richText(value: unknown, locale: "es" | "en" = "es"): ReactNode {
   if (!Array.isArray(value)) return null;
   return (value as RichText[]).map((item, index) => {
-    let content: ReactNode = item.plain_text;
+    let content: ReactNode = (
+      <>
+        {extractBibleReferences(item.plain_text).map((part, i) =>
+          part.type === "reference" ? (
+            <ScriptureTooltip key={i} reference={part.content} locale={locale} />
+          ) : (
+            <Fragment key={i}>{part.content}</Fragment>
+          )
+        )}
+      </>
+    );
     if (item.annotations?.code) content = <code>{content}</code>;
     if (item.annotations?.bold) content = <strong>{content}</strong>;
     if (item.annotations?.italic) content = <em>{content}</em>;
@@ -44,18 +63,43 @@ function fileUrl(payload: Record<string, unknown>) {
   return file?.url || external?.url;
 }
 
-function renderBlock(block: NotionBlock): ReactNode {
+function renderBlock(block: NotionBlock, index = 0, locale: "es" | "en" = "es"): ReactNode {
   const payload = blockPayload(block);
-  const text = richText(payload.rich_text);
-  const children = block.children?.map(renderBlock);
+  const text = richText(payload.rich_text, locale);
+  const children = block.children?.map((child, childIndex) =>
+    renderBlock(child, childIndex, locale)
+  );
 
   switch (block.type) {
     case "paragraph":
       return <p key={block.id}>{text}</p>;
     case "heading_1":
-      return <h2 key={block.id}>{text}</h2>;
-    case "heading_2":
-      return <h2 key={block.id}>{text}</h2>;
+    case "heading_2": {
+      const headingLabel = notionHeadingText(block);
+      const headingId = articleHeadingId(headingLabel, index);
+      const parsed = parseHeadingText(headingLabel);
+      if (parsed.reference) {
+        return (
+          <h2 className="article-heading-with-ref" id={headingId} key={block.id}>
+            <span className="article-heading-title">{parsed.title}</span>
+            <span className="article-heading-ref">
+              {extractBibleReferences(parsed.reference).map((part, i) =>
+                part.type === "reference" ? (
+                  <ScriptureTooltip key={i} reference={part.content} locale={locale} />
+                ) : (
+                  <Fragment key={i}>{part.content}</Fragment>
+                )
+              )}
+            </span>
+          </h2>
+        );
+      }
+      return (
+        <h2 id={headingId} key={block.id}>
+          {text}
+        </h2>
+      );
+    }
     case "heading_3":
       return <h3 key={block.id}>{text}</h3>;
     case "quote":
@@ -148,11 +192,13 @@ function renderBlock(block: NotionBlock): ReactNode {
 export function ArticleBody({
   blocks,
   body,
-  fallback
+  fallback,
+  locale = "es"
 }: {
   blocks?: NotionBlock[];
   body?: Record<string, unknown>;
   fallback?: string;
+  locale?: "es" | "en";
 }) {
   if (body?.root) {
     return (
@@ -161,6 +207,60 @@ export function ArticleBody({
         data={body as never}
         converters={({ defaultConverters }) => ({
           ...defaultConverters,
+          text: ({ node }) => {
+            let content: ReactNode = (
+              <>
+                {extractBibleReferences(node.text).map((part, i) =>
+                  part.type === "reference" ? (
+                    <ScriptureTooltip key={i} reference={part.content} locale={locale} />
+                  ) : (
+                    <Fragment key={i}>{part.content}</Fragment>
+                  )
+                )}
+              </>
+            );
+            if (node.format & 1) content = <strong>{content}</strong>;
+            if (node.format & 2) content = <em>{content}</em>;
+            if (node.format & 4) content = <s style={{ textDecoration: 'line-through' }}>{content}</s>;
+            if (node.format & 8) content = <u style={{ textDecoration: 'underline' }}>{content}</u>;
+            if (node.format & 16) content = <code>{content}</code>;
+            if (node.format & 32) content = <sub>{content}</sub>;
+            if (node.format & 64) content = <sup>{content}</sup>;
+            return content;
+          },
+          heading: ({ childIndex, node, nodesToJSX }) => {
+            const headingNode = node;
+            const Heading = headingNode.tag;
+            const label = lexicalHeadingText(headingNode);
+            const parsed = parseHeadingText(label);
+            const headingId =
+              headingNode.tag === "h1" || headingNode.tag === "h2"
+                ? articleHeadingId(label, childIndex)
+                : undefined;
+
+            if (parsed.reference) {
+              return (
+                <Heading className="article-heading-with-ref" id={headingId}>
+                  <span className="article-heading-title">{parsed.title}</span>
+                  <span className="article-heading-ref">
+              {extractBibleReferences(parsed.reference).map((part, i) =>
+                part.type === "reference" ? (
+                  <ScriptureTooltip key={i} reference={part.content} locale={locale} />
+                ) : (
+                  <Fragment key={i}>{part.content}</Fragment>
+                )
+              )}
+            </span>
+                </Heading>
+              );
+            }
+
+            return (
+              <Heading id={headingId}>
+                {nodesToJSX({ nodes: headingNode.children })}
+              </Heading>
+            );
+          },
           blocks: {
             callout: ({ node }: { node: CmsBlockNode }) => (
               <aside className="article-callout">{node.fields.text}</aside>
@@ -196,7 +296,7 @@ export function ArticleBody({
   }
 
   if (blocks?.length) {
-    return <div className="article-body">{blocks.map(renderBlock)}</div>;
+    return <div className="article-body">{blocks.map((block, index) => renderBlock(block, index, locale))}</div>;
   }
 
   return (

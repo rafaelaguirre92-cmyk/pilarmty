@@ -1,6 +1,10 @@
 import type { CollectionConfig } from "payload";
 
 import { authenticated } from "@/cms/access";
+import {
+  afterRelatedContentChange,
+  afterRelatedContentDelete
+} from "@/cms/hooks/content";
 
 export const Media: CollectionConfig = {
   slug: "media",
@@ -11,6 +15,10 @@ export const Media: CollectionConfig = {
     create: authenticated,
     update: authenticated,
     delete: authenticated
+  },
+  hooks: {
+    afterChange: [afterRelatedContentChange],
+    afterDelete: [afterRelatedContentDelete]
   },
   upload: {
     staticDir: "public/payload-media",

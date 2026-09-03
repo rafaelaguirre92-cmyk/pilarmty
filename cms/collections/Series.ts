@@ -23,7 +23,6 @@ export const Series: CollectionConfig = {
   slug: "series",
   labels: { singular: "Serie o evento", plural: "Series y eventos" },
   admin: {
-    hidden: true,
     useAsTitle: "title",
     group: "Contenido",
     defaultColumns: ["title", "kind", "_status"],

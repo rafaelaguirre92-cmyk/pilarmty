@@ -42,7 +42,7 @@ export async function CreatorPublicationsView(props: AdminViewServerProps) {
   ]);
 
   const publications: CreatorPublication[] = [
-    ...(teachings?.docs ?? []).map((doc) => ({ id: doc.id, title: doc.title, type: "teaching" as const, status: doc._status === "published" ? "published" as const : "draft" as const, date: doc.teachingDate || undefined, updatedAt: doc.updatedAt, format: doc.format || undefined, image: imageUrl(doc.image), metadataScore: metadataScore(doc, doc.teachingDate), editHref: `/admin/collections/teachings/${doc.id}` })),
+    ...(teachings?.docs ?? []).map((doc) => ({ id: doc.id, title: doc.title, type: "teaching" as const, status: doc._status === "published" ? "published" as const : "draft" as const, date: doc.teachingDate || undefined, updatedAt: doc.updatedAt, image: imageUrl(doc.image), metadataScore: metadataScore(doc, doc.teachingDate), editHref: `/admin/collections/teachings/${doc.id}` })),
     ...(posts?.docs ?? []).map((doc) => ({ id: doc.id, title: doc.title, type: "post" as const, status: doc._status === "published" ? "published" as const : "draft" as const, date: doc.contentDate || undefined, updatedAt: doc.updatedAt, image: imageUrl(doc.image), metadataScore: metadataScore(doc, doc.contentDate), editHref: `/admin/collections/resources/${doc.id}` }))
   ].sort((a, b) => +new Date(b.updatedAt) - +new Date(a.updatedAt));
 

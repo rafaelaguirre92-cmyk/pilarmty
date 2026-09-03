@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { Fragment, useState } from "react";
+
+import { ScriptureTooltip } from "@/components/scripture-tooltip";
 
 type Belief = {
   title: string;
@@ -81,7 +83,12 @@ export function BeliefsAccordion({
                   <p>{belief.description}</p>
                   {belief.references.length > 0 && (
                     <p className="beliefs-accordion-references">
-                      {belief.references.join(" · ")}
+                      {belief.references.map((ref, i) => (
+                        <Fragment key={ref}>
+                          {i > 0 && " · "}
+                          <ScriptureTooltip reference={ref} locale={locale} />
+                        </Fragment>
+                      ))}
                     </p>
                   )}
                   {belief.link && (

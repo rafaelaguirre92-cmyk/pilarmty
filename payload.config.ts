@@ -10,6 +10,7 @@ import { buildConfig } from "payload";
 import sharp from "sharp";
 
 import { Authors } from "@/cms/collections/Authors";
+import { resolveDatabaseUrl } from "@/lib/database-url";
 import { Media } from "@/cms/collections/Media";
 import { Redirects } from "@/cms/collections/Redirects";
 import { Resources } from "@/cms/collections/Resources";
@@ -20,8 +21,11 @@ import { Users } from "@/cms/collections/Users";
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-const databaseUrl = process.env.DATABASE_URL;
+const siteUrl =
+  process.env.SITE_URL ||
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  "http://localhost:3000";
+const databaseUrl = resolveDatabaseUrl();
 
 const db = databaseUrl
   ? postgresAdapter({
@@ -76,6 +80,13 @@ export default buildConfig({
             path: "./cms/components/CreateContentView",
             exportName: "CreateContentView"
           }
+        },
+        settings: {
+          path: "/configuracion",
+          Component: {
+            path: "./cms/components/CreatorSettingsView",
+            exportName: "CreatorSettingsView"
+          }
         }
       }
     },
@@ -98,7 +109,35 @@ export default buildConfig({
         defaultFromName: "Iglesia Pilar"
       })
     : undefined,
-  i18n: { fallbackLanguage: "es", supportedLanguages: { es } },
+  i18n: {
+    fallbackLanguage: "es",
+    supportedLanguages: {
+      es: {
+        ...es,
+        translations: {
+          ...es.translations,
+          general: {
+            ...es.translations.general,
+            emptyTrash: "Vaciar el archivo",
+            emptyTrashLabel: "Vaciar el archivo {{label}}",
+            titleTrashed: "{{label}} \"{{title}}\" se movió al archivo.",
+            trash: "Archivo",
+            trashedCountSuccessfully: "{{count}} {{label}} movidos al archivo."
+          },
+          authentication: {
+            ...es.translations.authentication,
+            logOut: "Cerrar Sesión",
+            logout: "Cerrar Sesión",
+            logoutUser: "Cerrar Sesión"
+          },
+          version: {
+            ...es.translations.version,
+            draftHasPublishedVersion: "Modificado"
+          }
+        }
+      }
+    }
+  },
   localization: {
     locales: [
       { code: "es", label: "Español" },

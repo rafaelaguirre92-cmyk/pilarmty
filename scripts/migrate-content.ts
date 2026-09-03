@@ -125,7 +125,18 @@ if (!dryRun) {
   }
 
   async function upsert(collection: string, migrationKey: string, data: Record<string, unknown>) {
-    const existing = await findByMigrationKey(collection, migrationKey);
+    let existing = await findByMigrationKey(collection, migrationKey);
+    if (!existing && collection === "series" && typeof data.slug === "string") {
+      const bySlug = await payload.find({
+        collection: "series",
+        where: { slug: { equals: data.slug } },
+        locale: "es",
+        depth: 0,
+        limit: 1,
+        overrideAccess: true
+      });
+      existing = bySlug.docs[0] as { id: number | string } | undefined;
+    }
     if (existing) {
       return payload.update({
         collection: collection as never,
@@ -154,7 +165,7 @@ if (!dryRun) {
   ) {
     if (!notionWritebackIsEnabled()) return;
     const syncedAt = new Date().toISOString();
-    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
+    const siteUrl = (process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "");
     try {
       await updateNotionPageProperties(pageId, {
         "Payload ID": {
@@ -288,7 +299,7 @@ if (!dryRun) {
       ),
       body,
       youtubeUrl: item.youtubeUrl,
-      applePodcastsUrl: item.applePodcastsUrl,
+      spotifyUrl: item.spotifyUrl,
       image: await asset(item.image, item.title),
       topics: item.tags.map((name) => topicIds.get(name)).filter(Boolean),
       legacy: item.legacy,

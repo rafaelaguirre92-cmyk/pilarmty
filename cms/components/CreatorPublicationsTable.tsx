@@ -8,7 +8,6 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 export type CreatorPublication = {
   date?: string;
   editHref: string;
-  format?: string;
   id: number | string;
   image?: string;
   metadataScore: number;
@@ -17,8 +16,6 @@ export type CreatorPublication = {
   type: "post" | "teaching";
   updatedAt: string;
 };
-
-const formatLabels: Record<string, string> = { audio: "Audio", mixed: "Audio + video", text: "Texto", video: "Video" };
 
 function prettyDate(value?: string) {
   if (!value) return "Sin fecha";
@@ -98,13 +95,12 @@ export function CreatorPublicationsTable({
       </section>
       <div className="creator-table-wrap">
         <table className="creator-publication-table">
-          <thead><tr><th>Publicación</th><th>Estado</th><th>Fecha</th><th>Formato</th><th>Metadatos</th><th><span className="sr-only">Abrir</span></th></tr></thead>
+          <thead><tr><th>Publicación</th><th>Estado</th><th>Fecha</th><th>Metadatos</th><th><span className="sr-only">Abrir</span></th></tr></thead>
           <tbody>
             {publications.map((item) => <tr key={`${item.type}-${item.id}`}>
               <td><Link href={item.editHref} className="creator-publication-title">{item.image ? <Image src={item.image} alt="" width={60} height={42} unoptimized /> : <span className={`creator-type-mark creator-type-mark--${item.type}`}>{item.type === "post" ? "P" : "E"}</span>}<span><strong>{item.title}</strong><small>{item.type === "post" ? "Post" : "Enseñanza"}</small></span></Link></td>
               <td><span className={`creator-status creator-status--${item.status}`}>{item.status === "published" ? "Publicado" : "Borrador"}</span></td>
               <td>{prettyDate(item.date || item.updatedAt)}</td>
-              <td><span className="creator-format">{item.type === "post" ? "Artículo" : formatLabels[item.format || ""] || "Enseñanza"}</span></td>
               <td><span className={`creator-metadata-score ${item.metadataScore >= 80 ? "is-good" : item.metadataScore >= 55 ? "is-medium" : "is-low"}`}><i style={{ "--score": `${item.metadataScore}%` } as CSSProperties} />{item.metadataScore}%</span></td>
               <td><Link href={item.editHref} aria-label={`Editar ${item.title}`} className="creator-row-arrow">→</Link></td>
             </tr>)}
@@ -118,4 +114,3 @@ export function CreatorPublicationsTable({
     </main>
   );
 }
-

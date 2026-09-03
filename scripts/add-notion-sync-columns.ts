@@ -12,7 +12,7 @@ const columns: Record<string, Record<string, string>> = {
   },
   teachings: {
     youtube_url: "text",
-    apple_podcasts_url: "text",
+    spotify_url: "text",
     notion_page_id: "text",
     notion_url: "text",
     sync_status: "text",
@@ -22,7 +22,7 @@ const columns: Record<string, Record<string, string>> = {
   },
   _teachings_v: {
     version_youtube_url: "text",
-    version_apple_podcasts_url: "text",
+    version_spotify_url: "text",
     version_notion_page_id: "text",
     version_notion_url: "text",
     version_sync_status: "text",

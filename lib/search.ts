@@ -1,6 +1,6 @@
-import { getCollections, getResources, getTeachings } from "@/lib/content";
+import { getCollections, getResources, getTeachings, getTopicPublicationOverrides } from "@/lib/content";
 import { localePath } from "@/lib/site";
-import { getTopicSummaries } from "@/lib/topics";
+import { getTopicSummaries, isTopicIndexable } from "@/lib/topics";
 import type { Locale } from "@/lib/types";
 
 export type SearchKind =
@@ -145,12 +145,18 @@ export function rankSearchItems(
 }
 
 export async function buildSearchIndex(locale: Locale): Promise<IndexedSearchItem[]> {
-  const [teachings, resources, collections] = await Promise.all([
+  const [teachings, resources, collections, publication] = await Promise.all([
     getTeachings(locale),
     getResources(locale),
-    getCollections(locale)
+    getCollections(locale),
+    getTopicPublicationOverrides()
   ]);
-  const topics = getTopicSummaries(teachings, resources);
+  const topics = getTopicSummaries(
+    teachings,
+    resources,
+    publication.published,
+    publication.unpublished
+  ).filter(isTopicIndexable);
   const labels =
     locale === "es"
       ? {

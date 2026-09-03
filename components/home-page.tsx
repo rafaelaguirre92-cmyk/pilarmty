@@ -5,7 +5,6 @@ import { ContactForm } from "@/components/contact-form";
 import { HomeCommunitiesSection } from "@/components/home-communities-section";
 import { HomeContentSection } from "@/components/home-content-section";
 import { UpcomingEventsSection } from "@/components/upcoming-events-section";
-import { ScrollParallax } from "@/components/scroll-parallax";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { localePath } from "@/lib/site";
@@ -44,7 +43,6 @@ export function HomePage({ locale }: { locale: Locale }) {
   return (
     <>
       <SiteHeader locale={locale} />
-      <ScrollParallax />
       <main>
         <section className="hero">
           <div className="container hero-grid">
@@ -67,7 +65,7 @@ export function HomePage({ locale }: { locale: Locale }) {
                 </Link>
               </div>
             </div>
-            <div className="hero-media" data-parallax="0.025">
+            <div className="hero-media" data-parallax="0.08">
               <Image
                 src="/images/church-community.webp"
                 alt={
@@ -92,7 +90,11 @@ export function HomePage({ locale }: { locale: Locale }) {
           }
         >
           <div className="container principles-grid">
-            <article className="principle-card principle-centrality">
+            <article
+              className="principle-card principle-centrality"
+              data-reveal
+              data-reveal-delay="100"
+            >
               <span className="principle-icon" aria-hidden="true" />
               <h2>
                 <em>{locale === "es" ? "Centralidad" : "Centrality"}</em>
@@ -101,7 +103,11 @@ export function HomePage({ locale }: { locale: Locale }) {
                 </strong>
               </h2>
             </article>
-            <article className="principle-card principle-community">
+            <article
+              className="principle-card principle-community"
+              data-reveal
+              data-reveal-delay="180"
+            >
               <span className="principle-icon" aria-hidden="true" />
               <h2>
                 <em>{locale === "es" ? "Comunidad," : "Community,"}</em>
@@ -110,7 +116,11 @@ export function HomePage({ locale }: { locale: Locale }) {
                 </strong>
               </h2>
             </article>
-            <article className="principle-card principle-mission">
+            <article
+              className="principle-card principle-mission"
+              data-reveal
+              data-reveal-delay="260"
+            >
               <span className="principle-icon" aria-hidden="true" />
               <h2>
                 <em>{locale === "es" ? "Misión," : "Mission,"}</em>
@@ -121,7 +131,7 @@ export function HomePage({ locale }: { locale: Locale }) {
         </section>
 
         <section className="section home-about-section">
-          <div className="container home-about-shell">
+          <div className="container home-about-shell" data-reveal>
             <p className="home-about-intro">
               {locale === "es" ? (
                 <>
@@ -140,7 +150,10 @@ export function HomePage({ locale }: { locale: Locale }) {
             </p>
 
             <div className="home-about-gallery">
-              <div className="home-about-photo" data-parallax="0.025">
+              <div
+                className="home-about-photo home-about-photo-left"
+                data-card-parallax="-0.03"
+              >
                 <Image
                   src="/images/wix/home/about-left.webp"
                   alt={
@@ -152,10 +165,7 @@ export function HomePage({ locale }: { locale: Locale }) {
                   sizes="(max-width: 719px) calc(100vw - 32px), 33vw"
                 />
               </div>
-              <div
-                className="home-about-photo home-about-photo-featured"
-                data-parallax="0.04"
-              >
+              <div className="home-about-photo home-about-photo-featured">
                 <Image
                   src="/images/wix/home/about-center.jpg"
                   alt={
@@ -167,7 +177,10 @@ export function HomePage({ locale }: { locale: Locale }) {
                   sizes="(max-width: 719px) calc(100vw - 32px), 33vw"
                 />
               </div>
-              <div className="home-about-photo" data-parallax="0.03">
+              <div
+                className="home-about-photo home-about-photo-right"
+                data-card-parallax="0.03"
+              >
                 <Image
                   src="/images/wix/home/about-right.webp"
                   alt={
@@ -197,19 +210,25 @@ export function HomePage({ locale }: { locale: Locale }) {
         <UpcomingEventsSection locale={locale} />
 
         <section className="section contact-section">
-          <div className="container contact-grid">
+          <div className="container contact-grid" data-reveal>
             <div>
               <p className="eyebrow">{copy.contactEyebrow}</p>
               <h2>{copy.contactTitle}</h2>
               <p className="lead">{copy.contactIntro}</p>
             </div>
-            <ContactForm locale={locale} />
+            <div>
+              <ContactForm locale={locale} />
+            </div>
           </div>
         </section>
 
         <section className="section home-scripture-section">
           <div className="container">
-            <figure className="home-scripture-card" data-parallax="0.02">
+            <figure
+              className="home-scripture-card"
+              data-parallax="0.06"
+              data-reveal
+            >
               <Image
                 src="/images/wix/about/huajuco.webp"
                 alt={
@@ -218,8 +237,11 @@ export function HomePage({ locale }: { locale: Locale }) {
                     : "View of the Huajuco Canyon"
                 }
                 fill
+                priority
+                unoptimized
                 sizes="(max-width: 719px) calc(100vw - 32px), 1200px"
               />
+              <div className="home-scripture-overlay" aria-hidden="true" />
               <blockquote className="home-scripture-quote">
                 <p>
                   {locale === "es" ? (
@@ -237,7 +259,7 @@ export function HomePage({ locale }: { locale: Locale }) {
                     </>
                   )}
                 </p>
-                <cite>{locale === "es" ? "Timoteo 3:15" : "Timothy 3:15"}</cite>
+                <cite>{locale === "es" ? "1 Timoteo 3:15" : "1 Timothy 3:15"}</cite>
               </blockquote>
             </figure>
           </div>

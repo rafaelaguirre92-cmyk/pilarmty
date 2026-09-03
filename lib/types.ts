@@ -50,8 +50,9 @@ export type Teaching = {
   tags: string[];
   image?: string;
   imageAlt?: string;
+  durationMinutes?: number;
   youtubeUrl?: string;
-  applePodcastsUrl?: string;
+  spotifyUrl?: string;
   legacy: boolean;
   published?: boolean;
   blocks?: NotionBlock[];

@@ -4,6 +4,7 @@ import { BeliefsAccordion } from "@/components/beliefs-accordion";
 import { CenterScrollLink } from "@/components/center-scroll-link";
 import { CopyFieldButton } from "@/components/copy-field-button";
 import { GiveOnlineSection } from "@/components/give-online-section";
+import { ScriptureTooltip } from "@/components/scripture-tooltip";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { getGiveBankDetails } from "@/lib/give";
@@ -36,7 +37,7 @@ const copy = {
     waysIntro: "Puedes contribuir de la manera que resulte más práctica para ti.",
     inPersonTitle: "Dar presencialmente",
     inPersonParagraphs: [
-      "Durante nuestras reuniones puedes dar en efectivo en el espacio designado para las ofrendas. Dar nunca es un requisito: cada persona participa de manera voluntaria, libre y agradecida."
+      "Puedes ofrendar en efectivo durante nuestras reuniones dominicales de manera libre y voluntaria."
     ],
     transferTitle: "Transferencia bancaria",
     transferBody:
@@ -112,7 +113,7 @@ const copy = {
     waysIntro: "You can contribute in the way that works best for you.",
     inPersonTitle: "Give in person",
     inPersonParagraphs: [
-      "During our gatherings you can give cash in the designated offering space. Giving is never required: each person takes part voluntarily, freely, and with gratitude."
+      "You can give cash freely and voluntarily during our Sunday gatherings."
     ],
     transferTitle: "Bank transfer",
     transferBody:
@@ -192,7 +193,8 @@ export function GivePage({ locale }: { locale: Locale }) {
                 <div className="about-page-copy">
                   <p>{content.heroLead}</p>
                   <p className="give-hero-reference">
-                    — {content.scriptureReference}
+                    — <ScriptureTooltip reference={content.scriptureReference.split(",")[0].trim()} locale={locale} />
+                    {content.scriptureReference.includes(",") && `, ${content.scriptureReference.split(",").slice(1).join(",").trim()}`}
                   </p>
                 </div>
                 <CenterScrollLink className="button" href="#formas-de-dar">
@@ -200,7 +202,7 @@ export function GivePage({ locale }: { locale: Locale }) {
                 </CenterScrollLink>
               </div>
 
-              <div className="about-page-hero-media give-hero-media">
+              <div className="about-page-hero-media give-hero-media" data-parallax="0.05">
                 <Image
                   src="/images/wix/visit/comunidad.webp"
                   alt={
@@ -215,12 +217,12 @@ export function GivePage({ locale }: { locale: Locale }) {
               </div>
             </div>
           </div>
-
         </section>
 
         <section
           className="section give-section give-methods-section"
           id="formas-de-dar"
+          data-reveal
         >
           <div className="container">
             <div className="communities-section-heading">
@@ -228,19 +230,33 @@ export function GivePage({ locale }: { locale: Locale }) {
               <p>{content.waysIntro}</p>
             </div>
 
-            <div className="give-methods">
-              <article className="give-method">
-                <span className="give-method-number">01</span>
-                <h3>{content.inPersonTitle}</h3>
-                {content.inPersonParagraphs.map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
-                ))}
-              </article>
+            <div className="give-methods-grid">
+              <div className="give-methods-col-left">
+                <article className="give-method-card">
+                  <span className="give-method-number">01</span>
+                  <h3>{content.inPersonTitle}</h3>
+                  {content.inPersonParagraphs.map((paragraph) => (
+                    <p key={paragraph}>{paragraph}</p>
+                  ))}
+                </article>
 
-              <article className="give-method give-transfer-method">
-                <span className="give-method-number">02</span>
-                <h3>{content.transferTitle}</h3>
-                <p>{content.transferBody}</p>
+                <GiveOnlineSection
+                  copy={{
+                    body: content.onlineBody,
+                    cta: content.onlineCta,
+                    title: content.onlineTitle
+                  }}
+                  locale={locale}
+                  number="03"
+                />
+              </div>
+
+              <article className="give-method-card give-transfer-card">
+                <div className="give-method-card-header">
+                  <span className="give-method-number">02</span>
+                  <h3>{content.transferTitle}</h3>
+                  <p>{content.transferBody}</p>
+                </div>
 
                 <dl className="give-bank-card">
                   <div className="give-bank-row">
@@ -290,22 +306,16 @@ export function GivePage({ locale }: { locale: Locale }) {
                   </div>
                 </dl>
               </article>
-
-              <GiveOnlineSection
-                copy={{
-                  body: content.onlineBody,
-                  cta: content.onlineCta,
-                  title: content.onlineTitle
-                }}
-                locale={locale}
-              />
             </div>
           </div>
         </section>
 
-        <section className="section give-section give-mission-section">
+        <section className="section give-section give-mission-section" data-reveal>
           <div className="container">
             <div className="give-mission-heading">
+              <p className="eyebrow">
+                {locale === "es" ? "Nuestra visión" : "Our vision"}
+              </p>
               <h2>
                 {locale === "es" ? (
                   <>Participamos juntos en la <em>misión</em></>
@@ -316,19 +326,19 @@ export function GivePage({ locale }: { locale: Locale }) {
               <p>{content.missionIntro}</p>
             </div>
 
-            <ol className="give-mission-list">
+            <div className="give-mission-grid">
               {content.missionItems.map((item, index) => (
-                <li key={item.title}>
-                  <span>{String(index + 1).padStart(2, "0")}</span>
+                <article className="give-mission-card" key={item.title}>
+                  <span className="give-mission-card-number">{String(index + 1).padStart(2, "0")}</span>
                   <h3>{item.title}</h3>
                   <p>{item.body}</p>
-                </li>
+                </article>
               ))}
-            </ol>
+            </div>
           </div>
         </section>
 
-        <section className="section visit-faq-section">
+        <section className="section visit-faq-section" data-reveal>
           <div className="container">
             <div className="communities-section-heading">
               <h2>

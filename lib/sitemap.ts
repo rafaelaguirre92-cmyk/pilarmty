@@ -1,7 +1,8 @@
 import {
   getCollections,
   getResources,
-  getTeachings
+  getTeachings,
+  getTopicPublicationOverrides
 } from "@/lib/content";
 import { absoluteUrl, localePath } from "@/lib/site";
 import {
@@ -21,13 +22,19 @@ function escapeXml(value: string) {
 }
 
 export async function buildSitemap(locale: Locale) {
-  const [collections, teachings, resources] = await Promise.all([
+  const [collections, teachings, resources, publication] = await Promise.all([
     getCollections(locale),
     getTeachings(locale),
-    getResources(locale)
+    getResources(locale),
+    getTopicPublicationOverrides()
   ]);
   const prefix = locale === "en" ? "/en" : "";
-  const topics = getTopicSummaries(teachings, resources).filter(
+  const topics = getTopicSummaries(
+    teachings,
+    resources,
+    publication.published,
+    publication.unpublished
+  ).filter(
     isTopicIndexable
   );
   const staticPaths = [
@@ -58,7 +65,13 @@ export async function buildSitemap(locale: Locale) {
       lastmod: resource.updatedAt || resource.date
     })),
     ...topics.map((topic) => {
-      const content = getTopicContent(topic.slug, teachings, resources);
+      const content = getTopicContent(
+        topic.slug,
+        teachings,
+        resources,
+        publication.published,
+        publication.unpublished
+      );
       const lastmod = [
         ...(content?.teachings || []).map(
           (item) => item.updatedAt || item.date || ""

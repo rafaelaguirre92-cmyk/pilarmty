@@ -10,12 +10,20 @@ import {
   propertySelect,
   propertyText,
   propertyUrl,
-  updateNotionPageProperties
+  updateNotionPageProperties,
+  type NotionPage
 } from "@/lib/notion";
 import { notionBlocksToLexical } from "@/lib/notion-to-lexical";
 import { slugToTitle } from "@/lib/site";
 
 type EditorialCollection = "teachings" | "resources";
+
+function fitSeoDescription(value?: string) {
+  if (!value || value.length <= 170) return value;
+  const candidate = value.slice(0, 170);
+  const boundary = candidate.lastIndexOf(" ");
+  return `${candidate.slice(0, boundary > 120 ? boundary : 167).trimEnd()}…`;
+}
 
 async function findOne(payload: Payload, collection: string, where: Record<string, unknown>) {
   const result = await payload.find({
@@ -29,11 +37,23 @@ async function findOne(payload: Payload, collection: string, where: Record<strin
   return result.docs[0] as { id: number | string } | undefined;
 }
 
-async function existingNotionDoc(payload: Payload, collection: EditorialCollection, pageId: string) {
-  return (
-    (await findOne(payload, collection, { notionPageId: { equals: pageId } })) ||
-    (await findOne(payload, collection, { migrationKey: { equals: `notion:${pageId}` } }))
-  );
+async function existingNotionDoc(payload: Payload, collection: EditorialCollection, page: NotionPage) {
+  const directlyLinked =
+    (await findOne(payload, collection, { notionPageId: { equals: page.id } })) ||
+    (await findOne(payload, collection, { migrationKey: { equals: `notion:${page.id}` } }));
+  if (directlyLinked) return directlyLinked;
+
+  // Notion page IDs change when the source database moves to another
+  // workspace. Payload ID remains stable and prevents duplicate imports.
+  const payloadId = propertyText(page.properties["Payload ID"]);
+  const slug = propertyText(page.properties.Slug);
+  if (!/^\d+$/.test(payloadId) || !slug) return undefined;
+  return findOne(payload, collection, {
+    and: [
+      { id: { equals: Number(payloadId) } },
+      { slug: { equals: slug } }
+    ]
+  });
 }
 
 async function namedRelation(
@@ -83,15 +103,15 @@ async function topicRelations(payload: Payload, names: string[]) {
 async function save(
   payload: Payload,
   collection: EditorialCollection,
-  pageId: string,
+  page: NotionPage,
   data: Record<string, unknown>
 ) {
-  const existing = await existingNotionDoc(payload, collection, pageId);
+  const existing = await existingNotionDoc(payload, collection, page);
   const common = {
     ...data,
-    migrationKey: `notion:${pageId}`,
-    notionPageId: pageId,
-    notionUrl: notionPageUrl(pageId),
+    migrationKey: `notion:${page.id}`,
+    notionPageId: page.id,
+    notionUrl: notionPageUrl(page.id),
     syncStatus: "synced",
     lastSyncedAt: new Date().toISOString(),
     lastSyncSource: "notion",
@@ -125,7 +145,7 @@ async function confirmInNotion(
 ) {
   if (!notionWritebackIsEnabled()) return page;
   const properties = page.properties;
-  const cmsUrl = `${(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "")}/admin/collections/${collection}/${payloadId}`;
+  const cmsUrl = `${(process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "")}/admin/collections/${collection}/${payloadId}`;
   if (
     propertyText(properties["Payload ID"]) === String(payloadId) &&
     propertyUrl(properties["CMS URL"]) === cmsUrl &&
@@ -177,7 +197,7 @@ export async function syncNotionPageToPayload(payload: Payload, pageId: string) 
         : undefined;
   if (!collection) return { skipped: "unsupported_type" as const };
 
-  const existing = await existingNotionDoc(payload, collection, pageId);
+  const existing = await existingNotionDoc(payload, collection, page);
   if (!propertyCheckbox(page.properties.Web)) {
     if (existing) {
       await payload.update({
@@ -208,7 +228,7 @@ export async function syncNotionPageToPayload(payload: Payload, pageId: string) 
     const author = item.author
       ? await namedRelation(payload, "authors", item.author)
       : undefined;
-    const doc = await save(payload, collection, pageId, {
+    const doc = await save(payload, collection, page, {
       title: item.title,
       slug: item.slug,
       series: await seriesRelation(payload, item.collection, item.collectionName),
@@ -218,10 +238,10 @@ export async function syncNotionPageToPayload(payload: Payload, pageId: string) 
       excerpt: item.excerpt,
       body,
       youtubeUrl: item.youtubeUrl,
-      applePodcastsUrl: item.applePodcastsUrl,
+      spotifyUrl: item.spotifyUrl,
       topics: await topicRelations(payload, item.tags),
       legacy: item.legacy,
-      seo: { description: item.seoDescription },
+      seo: { description: fitSeoDescription(item.seoDescription) },
       sourceUpdatedAt: item.updatedAt,
       _status: "published"
     });
@@ -235,7 +255,7 @@ export async function syncNotionPageToPayload(payload: Payload, pageId: string) 
   const author = item.author
     ? await namedRelation(payload, "authors", item.author)
     : undefined;
-  const doc = await save(payload, collection, pageId, {
+  const doc = await save(payload, collection, page, {
     title: item.title,
     slug: item.slug,
     kind: item.kind === "contenido-pilar" ? "pillar" : "article",
@@ -244,7 +264,7 @@ export async function syncNotionPageToPayload(payload: Payload, pageId: string) 
     excerpt: item.excerpt,
     body,
     topics: await topicRelations(payload, item.tags),
-    seo: { description: item.seoDescription },
+    seo: { description: fitSeoDescription(item.seoDescription) },
     sourceUpdatedAt: item.updatedAt,
     _status: "published"
   });

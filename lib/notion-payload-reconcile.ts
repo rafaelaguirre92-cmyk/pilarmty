@@ -6,9 +6,13 @@ import {
   type SyncDocument
 } from "@/cms/hooks/notion-sync";
 import {
+  getNotionPage,
   notionIsConfigured,
+  notionPageUrl,
   notionWritebackIsEnabled,
+  propertyDate,
   propertySelect,
+  propertyText,
   queryResourcePages,
   type NotionPage
 } from "@/lib/notion";
@@ -50,11 +54,11 @@ function collectionForPage(page: NotionPage): SyncCollection | undefined {
 async function findLinkedDocument(
   payload: Payload,
   collection: SyncCollection,
-  pageId: string
+  page: NotionPage
 ) {
   const direct = await payload.find({
     collection,
-    where: { notionPageId: { equals: pageId } },
+    where: { notionPageId: { equals: page.id } },
     locale: "es",
     draft: true,
     depth: 1,
@@ -65,14 +69,52 @@ async function findLinkedDocument(
 
   const migrated = await payload.find({
     collection,
-    where: { migrationKey: { equals: `notion:${pageId}` } },
+    where: { migrationKey: { equals: `notion:${page.id}` } },
     locale: "es",
     draft: true,
     depth: 1,
     limit: 1,
     overrideAccess: true
   });
-  return migrated.docs[0] as unknown as ReconcileDocument | undefined;
+  if (migrated.docs[0]) return migrated.docs[0] as unknown as ReconcileDocument;
+
+  // When a Notion database is moved or copied to another workspace, every
+  // Notion page receives a new ID. The copied Payload ID is the stable bridge
+  // that lets us relink the existing document instead of creating a duplicate.
+  const payloadId = propertyText(page.properties["Payload ID"]);
+  const slug = propertyText(page.properties.Slug);
+  if (!/^\d+$/.test(payloadId) || !slug) return undefined;
+  const linkedByPayloadId = await payload.find({
+    collection,
+    where: {
+      and: [
+        { id: { equals: Number(payloadId) } },
+        { slug: { equals: slug } }
+      ]
+    },
+    locale: "es",
+    draft: true,
+    depth: 1,
+    limit: 1,
+    overrideAccess: true
+  });
+  const linked = linkedByPayloadId.docs[0] as unknown as ReconcileDocument | undefined;
+  if (!linked) return undefined;
+
+  return payload.update({
+    collection,
+    id: linked.id,
+    data: {
+      notionPageId: page.id,
+      notionUrl: notionPageUrl(page.id),
+      migrationKey: `notion:${page.id}`
+    } as never,
+    locale: "es",
+    draft: true,
+    depth: 1,
+    overrideAccess: true,
+    context: { skipNotionSync: true, skipAutoTranslate: true }
+  }) as unknown as Promise<ReconcileDocument>;
 }
 
 async function unlinkedPendingDocuments(payload: Payload, collection: SyncCollection) {
@@ -107,6 +149,36 @@ export type NotionPayloadSyncSummary = {
 
 let activeRun: Promise<NotionPayloadSyncSummary> | null = null;
 
+export async function reconcileNotionPage(payload: Payload, pageId: string) {
+  const page = await getNotionPage(pageId);
+  const collection = collectionForPage(page);
+  if (!collection) return { direction: "unchanged" as const, skipped: "unsupported_type" as const };
+
+  const doc = await findLinkedDocument(payload, collection, page);
+  if (!doc) {
+    const result = await syncNotionPageToPayload(payload, page.id);
+    return { direction: "notion-to-payload" as const, result };
+  }
+
+  const origin = propertySelect(page.properties["Origen del último cambio"]);
+  const remoteSyncedAt = propertyDate(page.properties["Última sincronización"]);
+  const isOwnRecentWrite =
+    origin === "Payload" &&
+    Boolean(remoteSyncedAt && page.last_edited_time) &&
+    Date.parse(page.last_edited_time!) <= Date.parse(remoteSyncedAt!) + 120_000;
+  if (isOwnRecentWrite) {
+    return { collection, id: doc.id, direction: "unchanged" as const };
+  }
+
+  const direction = decideSyncDirection(doc, page.last_edited_time);
+  if (direction === "payload-to-notion") {
+    await pushPayloadDocumentToNotion(payload, collection, doc);
+  } else if (direction === "notion-to-payload") {
+    await syncNotionPageToPayload(payload, page.id);
+  }
+  return { collection, id: doc.id, direction };
+}
+
 async function executeSync(payload: Payload): Promise<NotionPayloadSyncSummary> {
   if (!notionIsConfigured()) throw new Error("Notion no está configurado.");
   if (!notionWritebackIsEnabled()) throw new Error("La escritura bidireccional con Notion no está habilitada.");
@@ -132,7 +204,7 @@ async function executeSync(payload: Payload): Promise<NotionPayloadSyncSummary> 
     }
 
     try {
-      const doc = await findLinkedDocument(payload, collection, page.id);
+      const doc = await findLinkedDocument(payload, collection, page);
       if (!doc) {
         const result = await syncNotionPageToPayload(payload, page.id);
         if ("id" in result) summary.notionToPayload += 1;

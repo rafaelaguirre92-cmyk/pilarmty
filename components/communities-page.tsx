@@ -1,8 +1,10 @@
 import Image from "next/image";
+import { Fragment } from "react";
 
 import { BeliefsAccordion } from "@/components/beliefs-accordion";
 import { CenterScrollLink } from "@/components/center-scroll-link";
-import { CommunityInterestForm } from "@/components/community-interest-form";
+import { CommunityInquiryModal } from "@/components/community-inquiry-modal";
+import { ScriptureTooltip } from "@/components/scripture-tooltip";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { getCommunities } from "@/lib/content";
@@ -36,7 +38,7 @@ const copy = {
       "La vida de iglesia va más allá del domingo. Nos reunimos porque necesitamos recordar juntos la gracia de Cristo, no porque tengamos la vida resuelta.",
       "Así crecemos, nos servimos y nos animamos unos a otros en el camino."
     ],
-    references: "Hechos 2:42–47 · Hebreos 10:24–25 · Efesios 4:15–16",
+    references: ["Hechos 2:42–47", "Hebreos 10:24–25", "Efesios 4:15–16"],
     experienceTitle: (
       <>
         ¿Cómo es una <em>comunidad</em> de Iglesia Pilar?
@@ -62,7 +64,10 @@ const copy = {
       "Comunidad Sur es la primera comunidad de Iglesia Pilar en la zona sur de Monterrey. Es un espacio para crecer en el evangelio, formar relaciones genuinas y aprender a seguir a Jesús en la vida diaria.",
     zone: "Sur de Monterrey",
     schedule: "Viernes 8:00pm",
-    communityCta: "Más información",
+    communityCta: "Quiero saber más",
+    communityDialogTitle: "Comunidad Sur",
+    communityDialogBody:
+      "Déjanos tus datos y alguien del equipo se pondrá en contacto contigo para platicarte cómo puedes visitarnos.",
     formTitle: (
       <>
         Te estamos <em>esperando</em>
@@ -70,6 +75,10 @@ const copy = {
     ),
     formBody:
       "Cuéntanos un poco sobre ti. Alguien del equipo de Iglesia Pilar se pondrá en contacto para conocerte, responder tus preguntas y orientarte.",
+    formCta: "Encuentra tu comunidad",
+    generalDialogTitle: "Encuentra tu comunidad",
+    generalDialogBody:
+      "Déjanos tus datos y alguien del equipo se pondrá en contacto contigo para orientarte.",
     faqEyebrow: "Preguntas frecuentes",
     faqTitle: (
       <>
@@ -137,7 +146,7 @@ const copy = {
       "Church life goes beyond Sunday. We gather because we need to remember Christ's grace together, not because we have life figured out.",
       "This is how we grow, serve, and encourage one another along the way."
     ],
-    references: "Acts 2:42–47 · Hebrews 10:24–25 · Ephesians 4:15–16",
+    references: ["Acts 2:42–47", "Hebrews 10:24–25", "Ephesians 4:15–16"],
     experienceTitle: (
       <>
         What is a <em>community</em> of Iglesia Pilar like?
@@ -163,7 +172,10 @@ const copy = {
       "Comunidad Sur is Iglesia Pilar's first community in southern Monterrey. It is a place to grow in the gospel, form genuine relationships, and learn to follow Jesus in everyday life.",
     zone: "Southern Monterrey",
     schedule: "Friday 8:00pm",
-    communityCta: "More information",
+    communityCta: "I want to know more",
+    communityDialogTitle: "Comunidad Sur",
+    communityDialogBody:
+      "Leave us your details and someone from our team will contact you to tell you how you can visit.",
     formTitle: (
       <>
         We are <em>waiting for you</em>
@@ -171,6 +183,10 @@ const copy = {
     ),
     formBody:
       "Tell us a little about yourself. Someone from Iglesia Pilar will contact you, answer your questions, and help you consider the next step.",
+    formCta: "Find your community",
+    generalDialogTitle: "Find your community",
+    generalDialogBody:
+      "Leave us your details and someone from our team will contact you to guide you.",
     faqEyebrow: "Frequently asked questions",
     faqTitle: (
       <>
@@ -254,7 +270,7 @@ export async function CommunitiesPage({ locale }: { locale: Locale }) {
               </CenterScrollLink>
             </div>
 
-            <div className="about-page-hero-media communities-hero-media">
+            <div className="about-page-hero-media communities-hero-media" data-parallax="0.05">
               <Image
                 src={communityImages.hero}
                 alt={
@@ -272,11 +288,16 @@ export async function CommunitiesPage({ locale }: { locale: Locale }) {
 
         <section className="section communities-purpose-section">
           <div className="container">
-            <div className="communities-purpose-layout">
+            <div className="communities-purpose-layout" data-reveal>
               <div className="communities-purpose-heading">
                 <h2>{content.purposeTitle}</h2>
                 <p className="communities-scripture communities-scripture-desktop">
-                  {content.references}
+                  {content.references.map((ref, i) => (
+                    <Fragment key={ref}>
+                      {i > 0 && " · "}
+                      <ScriptureTooltip reference={ref} locale={locale} />
+                    </Fragment>
+                  ))}
                 </p>
               </div>
 
@@ -287,12 +308,17 @@ export async function CommunitiesPage({ locale }: { locale: Locale }) {
                   ))}
                 </div>
                 <p className="communities-scripture communities-scripture-mobile">
-                  {content.references}
+                  {content.references.map((ref, i) => (
+                    <Fragment key={ref}>
+                      {i > 0 && " · "}
+                      <ScriptureTooltip reference={ref} locale={locale} />
+                    </Fragment>
+                  ))}
                 </p>
               </div>
             </div>
 
-            <div className="communities-purpose-bridge">
+            <div className="communities-purpose-bridge" data-reveal>
               <Image
                 src={communityImages.prayer}
                 alt={
@@ -308,7 +334,7 @@ export async function CommunitiesPage({ locale }: { locale: Locale }) {
         </section>
 
         <section className="section communities-experience-section">
-          <div className="container">
+          <div className="container" data-reveal>
             <div className="communities-experience-heading">
               <h2>{content.experienceTitle}</h2>
               <p>{content.experienceIntro}</p>
@@ -329,12 +355,12 @@ export async function CommunitiesPage({ locale }: { locale: Locale }) {
 
         <section className="section communities-list-section">
           <div className="container">
-            <div className="communities-section-heading">
+            <div className="communities-section-heading" data-reveal>
               <h2>{content.communitiesTitle}</h2>
             </div>
 
             {communities.map((community) => (
-              <article className="communities-feature-card" id={community.slug} key={community.slug}>
+              <article className="communities-feature-card" id={community.slug} key={community.slug} data-reveal>
                 <div className="communities-feature-image">
                   <Image
                     src={community.image || communityImages.hero}
@@ -360,9 +386,14 @@ export async function CommunitiesPage({ locale }: { locale: Locale }) {
                         <span>{community.schedule}</span>
                       </div>
                     </div>
-                    <a className="button communities-feature-action" href={community.ctaUrl || "#unirme"}>
-                      {community.ctaLabel || content.communityCta}
-                    </a>
+                    <CommunityInquiryModal
+                      className="communities-feature-action"
+                      community={community.name}
+                      description={content.communityDialogBody}
+                      locale={locale}
+                      title={content.communityDialogTitle.replace("Comunidad Sur", community.name)}
+                      triggerLabel={content.communityCta}
+                    />
                   </div>
                 </div>
               </article>
@@ -371,19 +402,26 @@ export async function CommunitiesPage({ locale }: { locale: Locale }) {
         </section>
 
         <section className="section communities-form-section" id="unirme">
-          <div className="container communities-form-layout">
+          <div className="container communities-form-layout" data-reveal>
             <div className="communities-form-shell">
               <div className="communities-form-heading">
                 <h2>{content.formTitle}</h2>
                 <p>{content.formBody}</p>
+                <CommunityInquiryModal
+                  className="secondary"
+                  description={content.generalDialogBody}
+                  locale={locale}
+                  showZone
+                  title={content.generalDialogTitle}
+                  triggerLabel={content.formCta}
+                />
               </div>
-              <CommunityInterestForm locale={locale} />
             </div>
           </div>
         </section>
 
         <section className="section communities-faq-section">
-          <div className="container">
+          <div className="container" data-reveal>
             <div className="communities-section-heading">
               <p className="eyebrow">{content.faqEyebrow}</p>
               <h2>{content.faqTitle}</h2>

@@ -33,14 +33,17 @@ export async function UpcomingEventsSection({ locale }: { locale: Locale }) {
 
   return (
     <section aria-labelledby="upcoming-events-title" className="section upcoming-events-section">
-      <div className="container upcoming-events-shell">
+      <div className="container upcoming-events-shell" data-reveal>
         <header className="upcoming-events-heading">
           <p className="eyebrow">{copy.eyebrow}</p>
           <h2 id="upcoming-events-title">{copy.title}</h2>
         </header>
         <div className={`upcoming-events-grid upcoming-events-grid--${events.length}`}>
           {events.map((event) => (
-            <article className={`upcoming-event-card${event.image ? "" : " is-without-image"}`} key={event.payloadId || `${event.locale}-${event.title}`}>
+            <article
+              className={`upcoming-event-card${event.image ? "" : " is-without-image"}`}
+              key={event.payloadId || `${event.locale}-${event.title}`}
+            >
               {event.image && (
                 <div className="upcoming-event-image">
                   <Image

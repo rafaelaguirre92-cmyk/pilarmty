@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { CollectionCard } from "@/components/collection-card";
 import { ResourceCatalogGrid } from "@/components/resource-catalog-grid";
+import { ResourceFiltersDrawer } from "@/components/resource-filters-drawer";
 import { ResourceTeachingSort } from "@/components/resource-teaching-sort";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -84,6 +85,7 @@ export async function ResourcesPage({
     : "todo";
   const normalizedQuery = query?.trim().toLocaleLowerCase() || "";
   const resourcePath = localePath(locale, "/recursos");
+  const searchPath = localePath(locale, locale === "es" ? "/buscar" : "/search");
   const selectedOrder = order === "oldest" ? "oldest" : "newest";
 
   const matchesQuery = (values: Array<string | undefined>) =>
@@ -287,6 +289,10 @@ export async function ResourcesPage({
           orderOldest: "Orden: más antiguas",
           applyFilters: "Aplicar filtros",
           clearFilters: "Limpiar filtros",
+          filterButton: "Filtrar",
+          filterClose: "Cerrar filtros",
+          activeFiltersLabel: "Filtros activos",
+          removeFilter: "Quitar filtro",
           resultCount: (count: number) =>
             `${count} ${count === 1 ? "entrada" : "entradas"}`,
           noMaterials: "No hay materiales que coincidan con estos filtros.",
@@ -360,6 +366,10 @@ export async function ResourcesPage({
           orderOldest: "Sort: oldest",
           applyFilters: "Apply filters",
           clearFilters: "Clear filters",
+          filterButton: "Filter",
+          filterClose: "Close filters",
+          activeFiltersLabel: "Active filters",
+          removeFilter: "Remove filter",
           resultCount: (count: number) =>
             `${count} ${count === 1 ? "entry" : "entries"}`,
           noMaterials: "No materials match these filters.",
@@ -391,6 +401,73 @@ export async function ResourcesPage({
         };
 
   const activeCatalogTab = selectedFilter;
+
+  const activeFiltersCount =
+    (series ? 1 : 0) + (topic ? 1 : 0) + (speaker ? 1 : 0);
+
+  const activeFiltersList: Array<{
+    id: string;
+    label: string;
+    removeHref: string;
+  }> = [];
+
+  if (series) {
+    const seriesObj =
+      catalogSeries.find((s) => s.slug === series) ||
+      collections.find((c) => c.slug === series);
+    const seriesName = seriesObj?.name || series;
+    const p = new URLSearchParams();
+    if (selectedFilter !== "todo") p.set("tipo", selectedFilter);
+    if (query?.trim()) p.set("q", query.trim());
+    if (topic) p.set("tema", topic);
+    if (speaker) p.set("predicador", speaker);
+    if (selectedOrder === "oldest") p.set("orden", "oldest");
+    const search = p.toString();
+    const href = search
+      ? `${resourcePath}?${search}#catalogo`
+      : `${resourcePath}#catalogo`;
+    activeFiltersList.push({
+      id: "series",
+      label: `${labels.seriesLabel}: ${seriesName}`,
+      removeHref: href
+    });
+  }
+
+  if (topic) {
+    const p = new URLSearchParams();
+    if (selectedFilter !== "todo") p.set("tipo", selectedFilter);
+    if (query?.trim()) p.set("q", query.trim());
+    if (series) p.set("serie", series);
+    if (speaker) p.set("predicador", speaker);
+    if (selectedOrder === "oldest") p.set("orden", "oldest");
+    const search = p.toString();
+    const href = search
+      ? `${resourcePath}?${search}#catalogo`
+      : `${resourcePath}#catalogo`;
+    activeFiltersList.push({
+      id: "topic",
+      label: `${labels.topicLabel}: ${topic}`,
+      removeHref: href
+    });
+  }
+
+  if (speaker) {
+    const p = new URLSearchParams();
+    if (selectedFilter !== "todo") p.set("tipo", selectedFilter);
+    if (query?.trim()) p.set("q", query.trim());
+    if (series) p.set("serie", series);
+    if (topic) p.set("tema", topic);
+    if (selectedOrder === "oldest") p.set("orden", "oldest");
+    const search = p.toString();
+    const href = search
+      ? `${resourcePath}?${search}#catalogo`
+      : `${resourcePath}#catalogo`;
+    activeFiltersList.push({
+      id: "speaker",
+      label: `${labels.speakerLabel}: ${speaker}`,
+      removeHref: href
+    });
+  }
 
   function catalogTabHref(nextFilter: (typeof catalogTabs)[number]) {
     const params = new URLSearchParams({ tipo: nextFilter });
@@ -467,21 +544,19 @@ export async function ResourcesPage({
                 <p>{labels.intro}</p>
               </div>
               <form
+                action={searchPath}
                 className="filter-bar resources-hero-search search-page-form"
-                action={resourcePath}
+                method="get"
               >
                 <label htmlFor="resource-query">{labels.search}</label>
                 <div>
                   <input
+                    defaultValue={query}
                     id="resource-query"
                     name="q"
-                    type="search"
-                    defaultValue={query}
                     placeholder={labels.placeholder}
+                    type="search"
                   />
-                  {selectedFilter !== "todo" && (
-                    <input name="tipo" type="hidden" value={selectedFilter} />
-                  )}
                   <button className="button" type="submit">
                     {labels.action}
                   </button>
@@ -562,7 +637,7 @@ export async function ResourcesPage({
         </section>
 
         {filteredCollections.length > 0 && (
-          <section className="section resource-hub-section">
+          <section className="section resource-hub-section" data-reveal>
             <div className="container">
               <div className="subsection-heading">
                 <h2>{labels.sections.series}</h2>
@@ -590,6 +665,7 @@ export async function ResourcesPage({
           <section
             className="section resource-hub-section resource-catalog-section"
             id="catalogo"
+            data-reveal
           >
           <div className="container">
             <div className="subsection-heading resource-teachings-heading">
@@ -619,15 +695,50 @@ export async function ResourcesPage({
                   </Link>
                 ))}
               </nav>
-              <ResourceTeachingSort
-                label={labels.orderLabel}
-                newestLabel={labels.orderNewest}
-                oldestLabel={labels.orderOldest}
-                selectedOrder={selectedOrder}
-              />
+              <div className="resource-catalog-toolbar-actions">
+                <ResourceFiltersDrawer
+                  activeCatalogTab={activeCatalogTab}
+                  activeCount={activeFiltersCount}
+                  allTopicsHref={localePath(locale, "/recursos/temas")}
+                  catalogSeries={catalogSeries}
+                  catalogSpeakers={catalogSpeakers}
+                  catalogTopics={catalogTopics}
+                  clearCatalogFiltersPath={clearCatalogFiltersPath}
+                  labels={{
+                    filterButton: labels.filterButton,
+                    title: labels.teachingFilters,
+                    close: labels.filterClose,
+                    seriesLabel: labels.seriesLabel,
+                    allSeries: labels.allSeries,
+                    topicLabel: labels.topicLabel,
+                    allTopics: labels.allTopics,
+                    speakerLabel: labels.speakerLabel,
+                    allSpeakers: labels.allSpeakers,
+                    bibleBooks: labels.bibleBooks,
+                    popularTopics: labels.popularTopics,
+                    allTopicsLink: labels.allTopicsLink,
+                    applyFilters: labels.applyFilters,
+                    clearFilters: labels.clearFilters
+                  }}
+                  popularScriptureBooks={popularScriptureBooks}
+                  popularTopics={popularTopics}
+                  query={query}
+                  resourcePath={resourcePath}
+                  selectedOrder={selectedOrder}
+                  series={series}
+                  speaker={speaker}
+                  topic={topic}
+                />
+                <ResourceTeachingSort
+                  label={labels.orderLabel}
+                  newestLabel={labels.orderNewest}
+                  oldestLabel={labels.orderOldest}
+                  selectedOrder={selectedOrder}
+                />
+              </div>
             </div>
             <div className="resource-teachings-layout">
-              <aside className="resource-teaching-filters">
+              <aside className="resource-teaching-filters resource-teaching-filters-desktop">
                 <h3>{labels.teachingFilters}</h3>
                 <form action={resourcePath} method="get">
                   <input name="tipo" type="hidden" value={activeCatalogTab} />
@@ -749,6 +860,40 @@ export async function ResourcesPage({
               </aside>
 
               <div className="resource-teachings-results">
+                {activeFiltersList.length > 0 && (
+                  <div className="resource-active-filters">
+                    <span className="resource-active-filters-label">
+                      {labels.activeFiltersLabel}:
+                    </span>
+                    <div className="resource-active-filters-list">
+                      {activeFiltersList.map((filterItem) => (
+                        <Link
+                          aria-label={`${labels.removeFilter}: ${filterItem.label}`}
+                          className="resource-active-filter-chip"
+                          href={filterItem.removeHref}
+                          key={filterItem.id}
+                          scroll={false}
+                        >
+                          <span>{filterItem.label}</span>
+                          <span
+                            aria-hidden="true"
+                            className="resource-active-filter-remove"
+                          >
+                            ✕
+                          </span>
+                        </Link>
+                      ))}
+                      <Link
+                        className="resource-active-filter-clear-all"
+                        href={clearCatalogFiltersPath}
+                        scroll={false}
+                      >
+                        {labels.clearFilters}
+                      </Link>
+                    </div>
+                  </div>
+                )}
+
                 {catalogItems.length > 0 ? (
                   <ResourceCatalogGrid
                     key={catalogPaginationKey}
@@ -776,7 +921,7 @@ export async function ResourcesPage({
 
         <section className="section resource-hub-section resources-expository-section">
           <div className="container">
-            <div className="resources-expository-layout">
+            <div className="resources-expository-layout" data-reveal>
               <div className="resources-expository-heading">
                 <h2>{labels.expositoryTitle}</h2>
               </div>

@@ -6,7 +6,7 @@ import type {
   PayloadRequest
 } from "payload";
 
-type EditorialCollection = "series" | "teachings" | "resources" | "events" | "communities";
+type EditorialCollection = "series" | "teachings" | "resources" | "topics" | "events" | "communities";
 type DocumentData = Record<string, unknown> & { id?: number | string; _status?: string };
 
 function relationId(value: unknown) {
@@ -43,6 +43,7 @@ export async function publicPath(
   const slug = String(doc.slug || "");
   if (!slug) return undefined;
   if (collection === "communities") return `${prefix}/comunidades`;
+  if (collection === "topics") return `${prefix}/recursos/temas/${slug}`;
   if (collection === "resources") return `${prefix}/recursos/${slug}`;
   if (collection === "series") return `${prefix}/ensenanzas/${slug}`;
   const parentSlug = await seriesSlug(req, doc.series);
@@ -122,7 +123,7 @@ export const afterEditorialChange = (
       : undefined;
 
     if (
-      previous?._status === "published" &&
+      (previous?._status === "published" || collection === "topics") &&
       previousPath &&
       currentPath &&
       previousPath !== currentPath
@@ -171,3 +172,13 @@ export const afterEditorialDelete = (
     invalidate([await publicPath(collection, doc as DocumentData, req)]);
     return doc;
   };
+
+export const afterRelatedContentChange: CollectionAfterChangeHook = ({ doc }) => {
+  invalidate([]);
+  return doc;
+};
+
+export const afterRelatedContentDelete: CollectionAfterDeleteHook = ({ doc }) => {
+  invalidate([]);
+  return doc;
+};

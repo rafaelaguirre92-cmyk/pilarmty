@@ -3,7 +3,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { getPayload } from "payload";
 
 import { syncNotionPage } from "@/lib/notion";
-import { syncNotionPageToPayload } from "@/lib/notion-payload-sync";
+import { reconcileNotionPage } from "@/lib/notion-payload-reconcile";
 import config from "@payload-config";
 
 function validSignature(rawBody: string, signature: string | null) {
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   if (pageId && payload.type?.startsWith("page.")) {
     await syncNotionPage(pageId);
     const cms = await getPayload({ config });
-    await syncNotionPageToPayload(cms, pageId);
+    await reconcileNotionPage(cms, pageId);
   }
 
   revalidateTag("notion-content", "max");

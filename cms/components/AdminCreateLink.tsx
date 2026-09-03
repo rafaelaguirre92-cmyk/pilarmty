@@ -1,6 +1,5 @@
 "use client";
 
-import { Account } from "@payloadcms/ui";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -8,7 +7,7 @@ import { useEffect, type ReactNode } from "react";
 
 import { AdminIcon } from "./AdminBrand";
 
-type IconName = "home" | "posts" | "teachings" | "media" | "series" | "authors" | "topics" | "external";
+type IconName = "home" | "posts" | "teachings" | "media" | "series" | "authors" | "topics" | "settings" | "external";
 
 function Icon({ name }: { name: IconName }) {
   const paths: Record<IconName, ReactNode> = {
@@ -19,6 +18,7 @@ function Icon({ name }: { name: IconName }) {
     series: <><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></>,
     authors: <><circle cx="12" cy="8" r="3"/><path d="M5 21c.8-4 3.1-6 7-6s6.2 2 7 6"/></>,
     topics: <><path d="M3 12V5h7l9 9-7 7-9-9Z"/><circle cx="7.5" cy="9.5" r="1"/></>,
+    settings: <><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/></>,
     external: <><path d="M14 4h6v6M20 4l-9 9"/><path d="M18 13v7H4V6h7"/></>
   };
   return <svg aria-hidden="true" className="creator-nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
@@ -50,6 +50,24 @@ export function AdminCreateLink() {
       desktop.removeEventListener("change", ensureDesktopInteractive);
     };
   }, []);
+
+  useEffect(() => {
+    const relocateDocControls = () => {
+      const controls = document.querySelector<HTMLElement>(".doc-controls");
+      const sidebar = document.querySelector<HTMLElement>(".document-fields__sidebar");
+      if (controls && sidebar && !sidebar.contains(controls)) {
+        sidebar.prepend(controls);
+      }
+    };
+
+    relocateDocControls();
+    const observer = new MutationObserver(relocateDocControls);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [pathname]);
 
   const items: Array<{ href: string; icon: IconName; label: string; matches?: string[] }> = [
     { href: "/admin", icon: "home", label: "Inicio" },
@@ -97,13 +115,11 @@ export function AdminCreateLink() {
       </nav>
       <div className="creator-nav-utilities">
         <Link
-          className={pathname.startsWith("/admin/account") ? "is-active" : undefined}
-          href="/admin/account"
+          className={pathname.startsWith("/admin/configuracion") ? "is-active" : undefined}
+          href="/admin/configuracion"
           title="Configuración"
         >
-          <span className="creator-nav-account" aria-hidden="true">
-            <Account />
-          </span>
+          <Icon name="settings" />
           <span className="creator-nav-label">Configuración</span>
         </Link>
         <Link href="/" target="_blank" title="Ver sitio"><Icon name="external" /><span className="creator-nav-label">Ver sitio</span></Link>

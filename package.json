@@ -17,6 +17,7 @@
     "payload:add-notion-columns": "tsx scripts/add-notion-sync-columns.ts",
     "content:migrate": "tsx scripts/migrate-content.ts",
     "content:migrate:dry": "tsx scripts/migrate-content.ts --dry-run",
+    "notion:spotify": "node --env-file=.env.local --import tsx scripts/ensure-notion-spotify.ts",
     "localization:migrate": "tsx scripts/migrate-localization.ts",
     "localization:migrate:dry": "tsx scripts/migrate-localization.ts --dry-run"
   },

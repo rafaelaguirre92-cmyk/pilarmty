@@ -1,6 +1,5 @@
 "use client";
 
-import { absoluteUrl } from "@/lib/site";
 import type { Locale } from "@/lib/types";
 
 type TeachingCardActionsProps = {
@@ -15,7 +14,11 @@ export function TeachingCardActions({
   locale
 }: TeachingCardActionsProps) {
   async function handleShare() {
-    const url = absoluteUrl(href);
+    const origin =
+      typeof window !== "undefined"
+        ? window.location.origin
+        : "https://www.iglesiapilar.mx";
+    const url = new URL(href, `${origin}/`).toString();
 
     try {
       if (typeof navigator !== "undefined" && navigator.share) {

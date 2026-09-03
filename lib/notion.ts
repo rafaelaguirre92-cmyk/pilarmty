@@ -64,6 +64,18 @@ export function notionDataSourceId() {
   return dataSourceId;
 }
 
+export async function ensureNotionSpotifyProperty() {
+  return notionFetch(`/data_sources/${dataSourceId}`, {
+    method: "PATCH",
+    cache: "no-store",
+    body: JSON.stringify({
+      properties: {
+        "Spotify URL": { url: {} }
+      }
+    })
+  });
+}
+
 export async function getNotionPage(pageId: string) {
   return notionFetch<NotionPage>(`/pages/${pageId}`, { cache: "no-store" });
 }
@@ -112,7 +124,9 @@ export async function replaceNotionPageBlocks(
     await notionFetch(`/blocks/${block.id}`, {
       method: "PATCH",
       cache: "no-store",
-      body: JSON.stringify({ in_trash: true })
+      body: JSON.stringify(
+        apiVersion >= "2026-03-11" ? { in_trash: true } : { archived: true }
+      )
     });
   }
 

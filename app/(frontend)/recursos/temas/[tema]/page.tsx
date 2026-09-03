@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { TopicPage } from "@/components/topics-page";
-import { getResources, getTeachings } from "@/lib/content";
+import { getResources, getTeachings, getTopicPublicationOverrides } from "@/lib/content";
 import { absoluteUrl } from "@/lib/site";
 import { pageMetadata, safeJsonLd } from "@/lib/seo";
 import {
@@ -17,22 +17,24 @@ type Props = { params: Promise<{ tema: string }> };
 export const revalidate = 300;
 
 export async function generateStaticParams() {
-  const [teachings, resources] = await Promise.all([
+  const [teachings, resources, publication] = await Promise.all([
     getTeachings("es"),
-    getResources("es")
+    getResources("es"),
+    getTopicPublicationOverrides()
   ]);
-  return getTopicSummaries(teachings, resources).map((topic) => ({
+  return getTopicSummaries(teachings, resources, publication.published, publication.unpublished).filter(isTopicIndexable).map((topic) => ({
     tema: topic.slug
   }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { tema } = await params;
-  const [teachings, resources] = await Promise.all([
+  const [teachings, resources, publication] = await Promise.all([
     getTeachings("es"),
-    getResources("es")
+    getResources("es"),
+    getTopicPublicationOverrides()
   ]);
-  const topic = getTopicContent(tema, teachings, resources);
+  const topic = getTopicContent(tema, teachings, resources, publication.published, publication.unpublished);
   if (!topic) return {};
 
   return pageMetadata({
@@ -46,12 +48,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const { tema } = await params;
-  const [teachings, resources] = await Promise.all([
+  const [teachings, resources, publication] = await Promise.all([
     getTeachings("es"),
-    getResources("es")
+    getResources("es"),
+    getTopicPublicationOverrides()
   ]);
-  const topic = getTopicContent(tema, teachings, resources);
-  if (!topic) notFound();
+  const topic = getTopicContent(tema, teachings, resources, publication.published, publication.unpublished);
+  if (!topic || !isTopicIndexable(topic)) notFound();
 
   const description = topicDescription(topic.name, "es");
   const jsonLd = {

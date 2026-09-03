@@ -17,7 +17,7 @@ solo el primer usuario puede registrarse sin una sesión existente.
 
 ## Variables de producción
 
-- `NEXT_PUBLIC_SITE_URL=https://www.iglesiapilar.mx`
+- `SITE_URL=https://www.iglesiapilar.mx`
 - `DATABASE_URL`: conexión pooled de Neon.
 - `PAYLOAD_SECRET`: secreto aleatorio largo y exclusivo de producción.
 - `BLOB_READ_WRITE_TOKEN`: almacenamiento de Vercel Blob.
@@ -61,7 +61,7 @@ como `NOTION_API_TOKEN` en `.env.local` y nunca copiarlo al repositorio.
 La base `Recursos - IP` utiliza estos campos de integración: `Payload ID`,
 `CMS URL`, `Estado de sincronización`, `Última sincronización` y `Origen del
 último cambio`. Los enlaces de reproducción se guardan en `YouTube URL` y
-`Apple Podcasts URL`; el campo histórico `Youtube` conserva su texto editorial.
+`Spotify URL`; el campo histórico `Youtube` conserva su texto editorial.
 
 ```bash
 npm run content:migrate:dry
@@ -83,6 +83,19 @@ Para cambios posteriores, configurar un webhook de páginas hacia
 en Payload. Las ediciones de las propiedades de un documento ligado en Payload
 se devuelven a Notion cuando `NOTION_WRITEBACK_ENABLED=true`; el contexto interno
 evita ciclos de actualización.
+
+La reconciliación completa se ejecuta diariamente mediante Vercel Cron en
+`/api/notion/sync`. El endpoint exige `CRON_SECRET`; Vercel lo envía
+automáticamente como `Authorization: Bearer ...`. La regla editorial es:
+
+- Si Payload tiene un cambio pendiente, Payload se escribe en Notion.
+- Si ambos lados cambiaron, prevalece Payload.
+- Si Payload no cambió y Notion sí, se importa la versión de Notion.
+- Un error individual queda registrado y no detiene el resto del lote.
+
+El mismo proceso puede ejecutarse manualmente desde **Configuración** en el
+panel. Los autosaves de Payload solo marcan el documento como pendiente para
+evitar múltiples escrituras remotas mientras se edita.
 
 Inventario mínimo esperado:
 

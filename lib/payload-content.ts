@@ -18,6 +18,7 @@ import type {
   Teaching
 } from "@/lib/types";
 import { normalizePathSegment } from "@/lib/site";
+import { payloadMediaUrl } from "@/lib/payload-media";
 
 async function previewIsEnabled() {
   try {
@@ -35,17 +36,7 @@ function related<T extends { id: number | string }>(value: unknown): T | undefin
 }
 
 function mediaUrl(value: unknown) {
-  const url = related<Media>(value)?.url || undefined;
-  if (!url) return undefined;
-  try {
-    const parsed = new URL(url);
-    if (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") {
-      return `${parsed.pathname}${parsed.search}`;
-    }
-  } catch {
-    // Relative media URLs are already safe for Next Image.
-  }
-  return url;
+  return payloadMediaUrl(value);
 }
 
 function mediaAlt(value: unknown) {
@@ -106,10 +97,11 @@ function mapTeaching(
     keyVerse: doc.keyVerse || undefined,
     body: doc.body as Record<string, unknown> | undefined,
     tags: topicNames(doc.topics),
-    image: mediaUrl(doc.image),
-    imageAlt: mediaAlt(doc.image),
+    image: mediaUrl(doc.image) || mediaUrl(series?.image),
+    imageAlt: mediaAlt(doc.image) || mediaAlt(series?.image) || series?.title,
+    durationMinutes: doc.durationMinutes || undefined,
     youtubeUrl: doc.youtubeUrl || undefined,
-    applePodcastsUrl: doc.applePodcastsUrl || undefined,
+    spotifyUrl: doc.spotifyUrl || undefined,
     legacy: Boolean(doc.legacy),
     seoTitle: doc.seo?.title || undefined,
     seoDescription: doc.seo?.description || undefined,
@@ -185,14 +177,19 @@ async function queryTeachings(locale: Locale, preview: boolean) {
     })
   ]);
   const alternates = new Map(alternateResult.docs.map((doc) => [doc.id, doc]));
-  return result.docs
+  const datedFirst = [...result.docs].sort((left, right) => {
+    const leftTime = left.teachingDate ? Date.parse(left.teachingDate) : Number.NEGATIVE_INFINITY;
+    const rightTime = right.teachingDate ? Date.parse(right.teachingDate) : Number.NEGATIVE_INFINITY;
+    return rightTime - leftTime;
+  });
+  return datedFirst
     .map((doc) => mapTeaching(doc, locale, alternates.get(doc.id)))
     .filter((doc): doc is Teaching => Boolean(doc));
 }
 
 const cachedTeachings = unstable_cache(
   (locale: Locale) => queryTeachings(locale, false),
-  ["payload-teachings-v2"],
+  ["payload-teachings-v7"],
   { revalidate: 300, tags: ["payload-content", "payload-teachings"] }
 );
 
@@ -230,7 +227,7 @@ async function queryCollections(locale: Locale, preview: boolean) {
 
 const cachedCollections = unstable_cache(
   (locale: Locale) => queryCollections(locale, false),
-  ["payload-series-v2"],
+  ["payload-series-v5"],
   { revalidate: 300, tags: ["payload-content", "payload-series"] }
 );
 
@@ -238,6 +235,39 @@ export async function payloadCollections(locale: Locale) {
   return (await previewIsEnabled())
     ? queryCollections(locale, true)
     : cachedCollections(locale);
+}
+
+async function queryTopicPublicationOverrides() {
+  const payload = await getPayload({ config });
+  const result = await payload.find({
+    collection: "topics",
+    depth: 0,
+    limit: 1000,
+    select: { slug: true, publishPage: true, unpublishPage: true },
+    overrideAccess: true
+  });
+  return {
+    published: result.docs.filter((doc) => doc.publishPage).map((doc) => doc.slug),
+    unpublished: result.docs.filter((doc) => doc.unpublishPage).map((doc) => doc.slug)
+  };
+}
+
+const cachedTopicPublicationOverrides = unstable_cache(
+  queryTopicPublicationOverrides,
+  ["payload-topic-pages-v2"],
+  { revalidate: 300, tags: ["payload-content", "payload-topics"] }
+);
+
+export async function payloadManuallyPublishedTopicSlugs() {
+  return (await payloadTopicPublicationOverrides()).published;
+}
+
+export async function payloadTopicPublicationOverrides() {
+  const overrides = await cachedTopicPublicationOverrides();
+  return {
+    published: new Set(overrides.published),
+    unpublished: new Set(overrides.unpublished)
+  };
 }
 
 async function queryResources(locale: Locale, preview: boolean) {

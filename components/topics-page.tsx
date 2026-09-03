@@ -3,22 +3,29 @@ import Link from "next/link";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { TopicEntries } from "@/components/topic-entries";
-import { getResources, getTeachings } from "@/lib/content";
+import { getResources, getTeachings, getTopicPublicationOverrides } from "@/lib/content";
 import { localePath } from "@/lib/site";
 import {
   getTopicContent,
   getTopicGroups,
   getTopicSummaries,
+  isTopicIndexable,
   topicDescription
 } from "@/lib/topics";
 import type { Locale } from "@/lib/types";
 
 export async function TopicsIndexPage({ locale }: { locale: Locale }) {
-  const [teachings, resources] = await Promise.all([
+  const [teachings, resources, publication] = await Promise.all([
     getTeachings(locale),
-    getResources(locale)
+    getResources(locale),
+    getTopicPublicationOverrides()
   ]);
-  const topics = getTopicSummaries(teachings, resources);
+  const topics = getTopicSummaries(
+    teachings,
+    resources,
+    publication.published,
+    publication.unpublished
+  ).filter(isTopicIndexable);
   const groups = getTopicGroups(topics, locale);
   const scriptureGroup = groups.find((group) => group.id === "scripture");
   const themeGroups = groups.filter((group) => group.id !== "scripture");
@@ -113,11 +120,18 @@ export async function TopicPage({
   locale: Locale;
   slug: string;
 }) {
-  const [teachings, resources] = await Promise.all([
+  const [teachings, resources, publication] = await Promise.all([
     getTeachings(locale),
-    getResources(locale)
+    getResources(locale),
+    getTopicPublicationOverrides()
   ]);
-  const topic = getTopicContent(slug, teachings, resources);
+  const topic = getTopicContent(
+    slug,
+    teachings,
+    resources,
+    publication.published,
+    publication.unpublished
+  );
   if (!topic) return null;
 
   const copy =

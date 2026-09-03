@@ -1,0 +1,19 @@
+.git
+.next
+.payload
+.env
+.env.local
+node_modules
+coverage
+*.tsbuildinfo
+npm-debug.log*
+
+# Archivos personales y utilidades visuales ajenas al sitio
+Carta_de_renuncia_Rafael_Aguirre.docx
+create_resignation_letter.py
+fix_top_fascia.py
+perspective_compose.py
+replace_left_wall.py
+replace_right_wall.py
+update_top_text.py
+qa_carta_renuncia/

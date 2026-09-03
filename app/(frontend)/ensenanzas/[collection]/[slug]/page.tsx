@@ -7,8 +7,12 @@ import {
   getTeachingTranslation
 } from "@/lib/content";
 import { redirectOrNotFound } from "@/lib/content/navigation";
-import { absoluteUrl, localePath } from "@/lib/site";
-import { pageMetadata, safeJsonLd } from "@/lib/seo";
+import { localePath } from "@/lib/site";
+import {
+  pageMetadata,
+  safeJsonLd,
+  teachingStructuredData
+} from "@/lib/seo";
 
 type Props = {
   params: Promise<{ collection: string; slug: string }>;
@@ -57,22 +61,12 @@ export default async function Page({ params }: Props) {
     return redirectOrNotFound(`/ensenanzas/${collection}/${slug}`);
   }
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "BlogPosting",
-    headline: teaching.title,
-    description: teaching.seoDescription || teaching.excerpt,
-    datePublished: teaching.date,
-    dateModified: teaching.updatedAt || teaching.date,
-    inLanguage: "es-MX",
-    author: teaching.author
-      ? { "@type": "Person", name: teaching.author, url: teaching.authorUrl }
-      : { "@type": "Organization", name: "Iglesia Pilar" },
-    image: teaching.socialImage || teaching.image,
-    publisher: { "@type": "Organization", name: "Iglesia Pilar", url: absoluteUrl("/"), logo: { "@type": "ImageObject", url: absoluteUrl("/brand/iglesia-pilar.png") } },
-    mainEntityOfPage: absoluteUrl(`/ensenanzas/${collection}/${slug}`),
-    about: teaching.tags
-  };
+  const jsonLd = teachingStructuredData({
+    teaching,
+    locale: "es",
+    collection,
+    slug
+  });
 
   return (
     <>

@@ -51,8 +51,8 @@ export const collections: Collection[] = [
     locale: "es"
   },
   {
-    slug: "fechas-especiales",
-    name: "Fechas Especiales",
+    slug: "tematicas",
+    name: "Temáticas",
     kind: "evento",
     description: "",
     locale: "es"
@@ -106,7 +106,7 @@ const spanishSeeds: Seed[] = [
   ["efesios", "una-crianza-llena-del-espíritu", "Una crianza llena del Espíritu", 11],
   ["efesios", "cristo-en-tu-jornada-laboral", "Cristo en tu jornada laboral", 12],
   ["efesios", "la-armadura-de-dios-para-el-día-malo", "La armadura de Dios para el día malo", 13],
-  ["fechas-especiales", "la-esperanza-de-un-cuerpo-como-el-de-cristo", "La esperanza de un cuerpo como el de Cristo", undefined, "2026-04-05", "Sergio González"],
+  ["tematicas", "la-esperanza-de-un-cuerpo-como-el-de-cristo", "La esperanza de un cuerpo como el de Cristo", undefined, "2026-04-05", "Sergio González"],
   ["marcos", "cree-a-los-testigos-del-hijo-de-dios", "Cree a los Testigos del Hijo de Dios", 1, "2026-04-19", "Sergio González"],
   ["marcos", "la-autoridad-del-rey-que-vino-a-salvar", "La autoridad del Rey que vino a salvar", 2, "2026-05-03", "Sergio González"],
   ["marcos", "nadie-puede-salvarse-a-sí-mismo", "Nadie puede salvarse a sí mismo", 3, "2026-05-10", "Sergio González"],

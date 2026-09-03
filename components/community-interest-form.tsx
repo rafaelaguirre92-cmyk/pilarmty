@@ -19,7 +19,15 @@ const zones = [
   "Otro"
 ];
 
-export function CommunityInterestForm({ locale }: { locale: Locale }) {
+export function CommunityInterestForm({
+  locale,
+  community,
+  showZone = false
+}: {
+  locale: Locale;
+  community?: string;
+  showZone?: boolean;
+}) {
   const [state, setState] = useState<
     "idle" | "sending" | "success" | "error"
   >("idle");
@@ -33,7 +41,7 @@ export function CommunityInterestForm({ locale }: { locale: Locale }) {
     const response = await fetch("/api/contact", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...body, formType: "community" })
+      body: JSON.stringify({ ...body, community, formType: "community" })
     });
 
     if (response.ok) {
@@ -109,23 +117,25 @@ export function CommunityInterestForm({ locale }: { locale: Locale }) {
         </label>
       </div>
 
-      <label>
-        <select
-          aria-label={isSpanish ? "Zona donde vives" : "Area where you live"}
-          name="zone"
-          required
-          defaultValue=""
-        >
-          <option value="" disabled>
-            {isSpanish ? "Zona donde vives" : "Area where you live"}
-          </option>
-          {zones.map((zone) => (
-            <option key={zone} value={zone}>
-              {zone}
+      {showZone && (
+        <label>
+          <select
+            aria-label={isSpanish ? "Zona donde vives" : "Area where you live"}
+            name="zone"
+            required
+            defaultValue=""
+          >
+            <option value="" disabled>
+              {isSpanish ? "Zona donde vives" : "Area where you live"}
             </option>
-          ))}
-        </select>
-      </label>
+            {zones.map((zone) => (
+              <option key={zone} value={zone}>
+                {zone}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
 
       <label>
         <textarea
@@ -147,21 +157,6 @@ export function CommunityInterestForm({ locale }: { locale: Locale }) {
       </label>
 
       <div className="community-form-footer">
-        <label className="community-consent">
-          <input
-            name="consent"
-            type="checkbox"
-            value="accepted"
-            defaultChecked
-            required
-          />
-          <span>
-            {isSpanish
-              ? "Acepto que Iglesia Pilar me contacte por WhatsApp, llamada o correo para dar seguimiento a mi solicitud."
-              : "I agree that Iglesia Pilar may contact me by WhatsApp, phone, or email to follow up on my request."}
-          </span>
-        </label>
-
         <button className="button" disabled={state === "sending"}>
           {state === "sending"
             ? isSpanish

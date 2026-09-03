@@ -38,7 +38,8 @@ export async function POST(request: Request) {
     return Response.json({ error: "stripe_not_configured" }, { status: 503 });
   }
 
-  const configuredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  const configuredSiteUrl =
+    process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL;
   const requestOrigin = new URL(request.url).origin;
   const siteUrl = (configuredSiteUrl || requestOrigin).replace(/\/$/, "");
   const givePath = checkout.locale === "en" ? "/en/dar" : "/dar";

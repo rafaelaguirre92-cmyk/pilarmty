@@ -685,7 +685,7 @@ function VisitPage({
               </div>
 
               {page.heroImage && (
-                <div className="about-page-hero-media">
+                <div className="about-page-hero-media" data-parallax="0.05">
                   <Image
                     src={page.heroImage}
                     alt=""
@@ -709,7 +709,7 @@ function VisitPage({
 
         <UpcomingEventsSection locale={locale} />
 
-        <section className="section visit-faq-section">
+        <section className="section visit-faq-section" data-reveal>
           <div className="container">
             <div className="communities-section-heading">
               <p className="eyebrow">{visitFaqs.eyebrow}</p>
@@ -720,7 +720,7 @@ function VisitPage({
         </section>
 
         {page.contact && (
-          <section className="section static-page-section visit-page-contact-section">
+          <section className="section static-page-section visit-page-contact-section" data-reveal>
             <div className="container static-content">
               <StaticContactSection locale={locale} contact={page.contact} />
             </div>
@@ -978,7 +978,7 @@ function AboutPage({ locale }: { locale: Locale }) {
                 )}
               </h1>
             </div>
-            <div className="about-page-hero-media">
+            <div className="about-page-hero-media" data-parallax="0.05">
               <Image
                 src="/images/wix/about/huajuco.webp"
                 alt={
@@ -995,14 +995,14 @@ function AboutPage({ locale }: { locale: Locale }) {
         </section>
 
         <section className="section about-pastor-section">
-          <div className="container about-pastor-card">
+          <div className="container about-pastor-card" data-reveal>
             <div className="about-pastor-image">
               <Image
                 src="/images/wix/about/sergio.webp"
                 alt={
                   locale === "es"
-                    ? "Sergio González y su familia"
-                    : "Sergio González and his family"
+                    ? "Sergio González, Pastor Principal de Iglesia Pilar"
+                    : "Sergio González, Lead Pastor of Iglesia Pilar"
                 }
                 fill
                 sizes="(max-width: 720px) 100vw, 44vw"
@@ -1013,13 +1013,59 @@ function AboutPage({ locale }: { locale: Locale }) {
                 {locale === "es" ? "Nuestro pastor" : "Our pastor"}
               </p>
               <h2>Sergio González</h2>
-              <p>{locale === "es" ? "y su familia" : "and his family"}</p>
+              <div className="about-pastor-bio">
+                {locale === "es" ? (
+                  <>
+                    <p>
+                      Ingeniero industrial y de sistemas de profesión, Sergio
+                      respondió al llamado del Señor a servirle de tiempo
+                      completo. Desde el año 2004 ha servido en diferentes
+                      ministerios e iglesias, como pastor de adolescentes y
+                      jóvenes, co-pastor y administrador general.
+                    </p>
+                    <p>
+                      Fue uno de los pastores de Familia de Fe, la iglesia que
+                      lo envió a plantar Iglesia Pilar. También ha impartido
+                      clases en diversos institutos bíblicos y colabora con el
+                      Simeon Trust, un ministerio dedicado a entrenar a quienes
+                      enseñan la Palabra.
+                    </p>
+                    <p>
+                      Es Maestro en Estudios Teológicos por el Southern Baptist
+                      Theological Seminary y actualmente sirve como Pastor
+                      Principal de Iglesia Pilar.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p>
+                      An industrial and systems engineer by profession, Sergio
+                      answered the Lord&apos;s call to full-time ministry. Since
+                      2004, he has served in various ministries and churches as
+                      a youth and young adults pastor, co-pastor, and general
+                      administrator.
+                    </p>
+                    <p>
+                      He was one of the pastors at Familia de Fe, the church that
+                      sent him to plant Iglesia Pilar. He has also taught at
+                      various Bible institutes and collaborates with the Simeon
+                      Trust, a ministry dedicated to training those who teach
+                      God&apos;s Word.
+                    </p>
+                    <p>
+                      He holds a Master of Arts in Theological Studies from The
+                      Southern Baptist Theological Seminary and currently serves
+                      as Lead Pastor of Iglesia Pilar.
+                    </p>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </section>
 
         <section className="section about-beliefs-section" id="creencias">
-          <div className="container">
+          <div className="container" data-reveal>
             <div className="about-beliefs-heading">
               <p className="eyebrow">
                 {locale === "es" ? "Nuestra fe" : "Our faith"}
@@ -1041,7 +1087,7 @@ function AboutPage({ locale }: { locale: Locale }) {
         </section>
 
         <section className="section about-partners-section">
-          <div className="container">
+          <div className="container" data-reveal>
             <div className="about-partners-heading">
               <h2>
                 {locale === "es" ? (
@@ -1079,7 +1125,7 @@ function AboutPage({ locale }: { locale: Locale }) {
         </section>
 
         <section className="section about-visit-cta">
-          <div className="container about-visit-cta-inner">
+          <div className="container about-visit-cta-inner" data-reveal>
             <p className="eyebrow">
               {locale === "es" ? "Te damos la bienvenida" : "You are welcome"}
             </p>

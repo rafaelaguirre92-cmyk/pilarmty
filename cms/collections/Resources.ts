@@ -15,7 +15,7 @@ import {
   afterEditorialDelete,
   guardPublishedSlug
 } from "@/cms/hooks/content";
-import { syncPayloadToNotion } from "@/cms/hooks/notion-sync";
+import { markNotionSyncPending, syncPayloadToNotion } from "@/cms/hooks/notion-sync";
 import {
   autoTranslateHook,
   markEnglishTranslationReviewed
@@ -24,12 +24,21 @@ import { previewUrl } from "@/cms/preview";
 
 export const Resources: CollectionConfig = {
   slug: "resources",
+  defaultSort: "-contentDate",
   labels: { singular: "Artículo", plural: "Artículos" },
   admin: {
     hidden: false,
     useAsTitle: "title",
     group: "Contenido",
     defaultColumns: ["title", "kind", "contentDate", "_status"],
+    components: {
+      beforeList: [
+        {
+          path: "./cms/components/ListQuickFilters",
+          exportName: "ListQuickFilters"
+        }
+      ]
+    },
     preview: previewUrl("resources"),
     livePreview: { url: previewUrl("resources") }
   },
@@ -45,7 +54,7 @@ export const Resources: CollectionConfig = {
     drafts: { autosave: { interval: 2000 }, schedulePublish: true, validate: true }
   },
   hooks: {
-    beforeChange: [guardPublishedSlug, markEnglishTranslationReviewed],
+    beforeChange: [guardPublishedSlug, markNotionSyncPending, markEnglishTranslationReviewed],
     afterChange: [
       afterEditorialChange("resources"),
       autoTranslateHook("resources"),

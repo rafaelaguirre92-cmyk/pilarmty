@@ -72,7 +72,7 @@ export async function HomeContentSection({ locale }: { locale: Locale }) {
 
   return (
     <section className="section home-content-section">
-      <div className="container home-content-shell">
+      <div className="container home-content-shell" data-reveal>
         <div className="home-content-intro">
           <p className="eyebrow">{copy.eyebrow}</p>
           <h2>{copy.title}</h2>
@@ -187,7 +187,10 @@ export async function HomeContentSection({ locale }: { locale: Locale }) {
           {recentResources.length > 0 ? (
             <div className="home-resource-grid">
               {recentResources.map((resource) => (
-                <article className="home-resource-card" key={resource.slug}>
+                <article
+                  className="home-resource-card"
+                  key={resource.slug}
+                >
                   <p className="eyebrow">
                     {resource.kind === "contenido-pilar"
                       ? copy.pillar

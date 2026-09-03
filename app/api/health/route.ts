@@ -1,5 +1,6 @@
 import { getPayload } from "payload";
 
+import { isDatabaseConfigured } from "@/lib/database-url";
 import config from "@payload-config";
 
 export async function GET() {
@@ -13,12 +14,17 @@ export async function GET() {
   }
 
   const productionSecret = Boolean(process.env.PAYLOAD_SECRET);
-  const databaseConfigured = Boolean(process.env.DATABASE_URL);
+  const databaseConfigured = isDatabaseConfigured();
   const blobConfigured = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
   const schedulerConfigured = Boolean(
     process.env.QSTASH_TOKEN &&
       process.env.QSTASH_CURRENT_SIGNING_KEY &&
       process.env.QSTASH_NEXT_SIGNING_KEY
+  );
+  const notionSyncConfigured = Boolean(
+    process.env.NOTION_API_TOKEN &&
+      process.env.NOTION_WRITEBACK_ENABLED === "true" &&
+      process.env.CRON_SECRET
   );
   return Response.json({
     ok: payloadConnected,
@@ -26,6 +32,7 @@ export async function GET() {
     postgres: { configured: databaseConfigured, connected: databaseConfigured && payloadConnected },
     blob: { configured: blobConfigured },
     scheduler: { configured: schedulerConfigured },
+    notionSync: { configured: notionSyncConfigured },
     timestamp: new Date().toISOString()
   }, { status: payloadConnected ? 200 : 503 });
 }

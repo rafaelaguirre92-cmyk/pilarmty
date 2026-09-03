@@ -1,4 +1,8 @@
-import type { CollectionAfterChangeHook, Payload } from "payload";
+import type {
+  CollectionAfterChangeHook,
+  CollectionBeforeChangeHook,
+  Payload
+} from "payload";
 
 import { lexicalToNotionBlocks } from "@/lib/lexical-to-notion";
 import {
@@ -94,7 +98,7 @@ export async function notionProperties(
     Etiquetas: { multi_select: topics.map((name) => ({ name })) },
     "Payload ID": text(String(doc.id)),
     "CMS URL": {
-      url: `${(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "")}/admin/collections/${collection}/${doc.id}`
+      url: `${(process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "")}/admin/collections/${collection}/${doc.id}`
     },
     "Estado de sincronización": select("Sincronizado"),
     "Última sincronización": { date: { start: syncedAt } },
@@ -111,8 +115,8 @@ export async function notionProperties(
       "Sección": select(seriesSlug),
       Episodio: { number: typeof doc.episode === "number" ? doc.episode : null },
       "YouTube URL": { url: typeof doc.youtubeUrl === "string" ? doc.youtubeUrl || null : null },
-      "Apple Podcasts URL": {
-        url: typeof doc.applePodcastsUrl === "string" ? doc.applePodcastsUrl || null : null
+      "Spotify URL": {
+        url: typeof doc.spotifyUrl === "string" ? doc.spotifyUrl || null : null
       }
     };
   }
@@ -151,11 +155,12 @@ export async function pushPayloadDocumentToNotion(
 
   const syncedAt = new Date().toISOString();
   try {
+    const blocks = lexicalToNotionBlocks(doc.body);
     const properties = await notionProperties(collection, doc, payload, syncedAt);
     const initialPage = doc.notionPageId
       ? await updateNotionPageProperties(doc.notionPageId, properties)
       : await createNotionPage(properties);
-    await replaceNotionPageBlocks(initialPage.id, lexicalToNotionBlocks(doc.body));
+    await replaceNotionPageBlocks(initialPage.id, blocks);
     const page = await getNotionPage(initialPage.id);
 
     await updateLocalStatus(collection, doc, payload, {
@@ -179,25 +184,35 @@ export async function pushPayloadDocumentToNotion(
   }
 }
 
+/**
+ * Mark content as pending within the same database write that changed it.
+ * Updating the document again from `afterChange` made the admin autosave wait
+ * on a nested write, leaving the form permanently in its saving state.
+ */
+export const markNotionSyncPending: CollectionBeforeChangeHook = ({ data, req }) => {
+  if (
+    !notionWritebackIsEnabled() ||
+    req.context?.skipNotionSync ||
+    req.locale === "en"
+  ) {
+    return data;
+  }
+
+  return {
+    ...data,
+    syncStatus: "pending",
+    lastSyncSource: "payload",
+    syncError: null
+  };
+};
+
 export const syncPayloadToNotion = (
   collection: SyncCollection
 ): CollectionAfterChangeHook =>
-  async ({ doc, req }) => {
-    const current = doc as SyncDocument;
-    if (
-      !notionWritebackIsEnabled() ||
-      req.context?.skipNotionSync ||
-      req.locale === "en"
-    ) {
-      return doc;
-    }
-
-    // Autosave only marks the item. The daily/manual reconciler performs the
-    // remote write once, preventing a burst of Notion requests while editing.
-    await updateLocalStatus(collection, current, req.payload, {
-      syncStatus: "pending",
-      lastSyncSource: "payload",
-      syncError: null
-    });
+  async ({ doc }) => {
+    void collection;
+    // The pending state is now written in beforeChange. Keeping this hook as a
+    // no-op preserves the collection hook surface without causing a nested
+    // update during Payload's autosave or publish flow.
     return doc;
   };

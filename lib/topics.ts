@@ -6,6 +6,8 @@ export type TopicSummary = {
   name: string;
   slug: string;
   count: number;
+  manuallyPublished: boolean;
+  manuallyUnpublished: boolean;
 };
 
 export type TopicContent = TopicSummary & {
@@ -123,7 +125,9 @@ export function isScriptureTopic(name: string) {
 
 export function getTopicSummaries(
   teachings: Teaching[],
-  resources: Resource[]
+  resources: Resource[],
+  manuallyPublishedSlugs: ReadonlySet<string> = new Set(),
+  manuallyUnpublishedSlugs: ReadonlySet<string> = new Set()
 ): TopicSummary[] {
   const topics = new Map<string, TopicSummary>();
 
@@ -135,7 +139,9 @@ export function getTopicSummaries(
       topics.set(slug, {
         name: current?.name || name,
         slug,
-        count: (current?.count || 0) + 1
+        count: (current?.count || 0) + 1,
+        manuallyPublished: manuallyPublishedSlugs.has(slug),
+        manuallyUnpublished: manuallyUnpublishedSlugs.has(slug)
       });
     }
   }
@@ -187,9 +193,16 @@ export function getTopicGroups(
 export function getTopicContent(
   slug: string,
   teachings: Teaching[],
-  resources: Resource[]
+  resources: Resource[],
+  manuallyPublishedSlugs: ReadonlySet<string> = new Set(),
+  manuallyUnpublishedSlugs: ReadonlySet<string> = new Set()
 ): TopicContent | null {
-  const topic = getTopicSummaries(teachings, resources).find(
+  const topic = getTopicSummaries(
+    teachings,
+    resources,
+    manuallyPublishedSlugs,
+    manuallyUnpublishedSlugs
+  ).find(
     (item) => item.slug === slug
   );
   if (!topic) return null;
@@ -206,7 +219,8 @@ export function getTopicContent(
 }
 
 export function isTopicIndexable(topic: TopicSummary) {
-  return topic.count >= TOPIC_INDEX_MIN_CONTENT;
+  if (topic.manuallyUnpublished) return false;
+  return topic.count >= TOPIC_INDEX_MIN_CONTENT || (topic.count > 0 && topic.manuallyPublished);
 }
 
 export function topicDescription(topic: string, locale: Locale) {

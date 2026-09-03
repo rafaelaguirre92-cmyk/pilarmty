@@ -68,7 +68,7 @@ export function normalizeTeachingPage(
       propertyUrl(properties["Imagen URL"]) ||
       propertyUrl(properties["Cover URL"]),
     youtubeUrl: propertyUrl(properties["YouTube URL"]),
-    applePodcastsUrl: propertyUrl(properties["Apple Podcasts URL"]),
+    spotifyUrl: propertyUrl(properties["Spotify URL"]),
     updatedAt: page.last_edited_time,
     legacy,
     published
@@ -199,6 +199,18 @@ export async function getCollections(locale: Locale): Promise<Collection[]> {
     return payloadCollections(locale);
   }
   return collections.filter((collection) => collection.locale === locale);
+}
+
+export async function getManuallyPublishedTopicSlugs() {
+  return (await getTopicPublicationOverrides()).published;
+}
+
+export async function getTopicPublicationOverrides() {
+  if (!usePayload) {
+    return { published: new Set<string>(), unpublished: new Set<string>() };
+  }
+  const { payloadTopicPublicationOverrides } = await import("@/lib/payload-content");
+  return payloadTopicPublicationOverrides();
 }
 
 export async function getCollection(locale: Locale, slug: string) {

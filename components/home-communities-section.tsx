@@ -17,7 +17,7 @@ export async function HomeCommunitiesSection({ locale }: { locale: Locale }) {
 
   return (
     <section className="section home-communities-section">
-      <div className="container home-communities-shell">
+      <div className="container home-communities-shell" data-reveal>
         <div className="home-communities-intro">
           <p className="eyebrow">
             {locale === "es"
@@ -40,6 +40,11 @@ export async function HomeCommunitiesSection({ locale }: { locale: Locale }) {
               ? "Nuestras comunidades misionales son espacios para conocernos, acompañarnos y aprender juntos a vivir el evangelio cada día."
               : "Our missionary communities are spaces where we can get to know one another, support each other, and learn together to live out the gospel each day."}
           </p>
+          <div className="button-row">
+            <Link className="button home-communities-cta" href={localePath(locale, "/comunidades")}>
+              {locale === "es" ? "Ver comunidades" : "View communities"}
+            </Link>
+          </div>
         </div>
 
         <div className="home-communities-grid">

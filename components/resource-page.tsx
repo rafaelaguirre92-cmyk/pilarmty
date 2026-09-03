@@ -68,6 +68,7 @@ export async function ResourcePage({
             <ArticleBody
               blocks={resource.blocks}
               body={resource.body}
+              locale={locale}
             />
           </div>
         </article>

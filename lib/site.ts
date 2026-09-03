@@ -1,9 +1,16 @@
 import type { Locale } from "./types";
 
 export const SITE_NAME = "Iglesia Pilar";
-export const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
-  "https://www.iglesiapilar.mx";
+
+const DEFAULT_SITE_URL = "https://www.iglesiapilar.mx";
+
+function normalizeSiteUrl(value?: string) {
+  return value?.replace(/\/$/, "") || DEFAULT_SITE_URL;
+}
+
+export const SITE_URL = normalizeSiteUrl(
+  process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL
+);
 
 export function absoluteUrl(path = "/") {
   return new URL(path, `${SITE_URL}/`).toString();
