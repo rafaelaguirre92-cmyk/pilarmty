@@ -64,7 +64,7 @@ const copy = {
       {
         title: "¿Es obligatorio dar?",
         description:
-          "No. Dar es una decisión personal que debe hacerse voluntariamente, con libertad y gratitud, no por presión u obligación.",
+          "Los miembros y socios ministeriales de Iglesia Pilar se han comprometido a apoyar financieramente a la misión de la iglesia. Dar es una decisión personal que es una respuesta a la generosidad sacrificial de nuestro Señor Jesús. Todo quien da lo hace de manera voluntaria, con libertad y gratitud.",
         references: []
       },
       {
@@ -76,7 +76,7 @@ const copy = {
       {
         title: "¿Las aportaciones son deducibles de impuestos?",
         description:
-          "Esta información estará disponible próximamente.",
+          "No, las aportaciones no son deducibles de impuestos. Pilar de la Verdad AC no está autorizada para dar facturas deducibles de impuestos.",
         references: []
       },
       {
@@ -152,7 +152,7 @@ const copy = {
       {
         title: "Are contributions tax deductible?",
         description:
-          "This information will be available soon.",
+          "No, contributions are not tax deductible. Pilar de la Verdad AC is not authorized to issue tax-deductible receipts.",
         references: []
       },
       {

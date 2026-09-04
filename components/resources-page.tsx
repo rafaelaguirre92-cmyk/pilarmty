@@ -23,6 +23,7 @@ const filters = [
   "series",
   "eventos",
   "invitados",
+  "tematicas",
   "articulos"
 ] as const;
 
@@ -31,8 +32,8 @@ const catalogTabs = [
   "todo",
   "ensenanzas",
   "articulos",
-  "eventos",
-  "invitados"
+  "invitados",
+  "tematicas"
 ] as const;
 type CatalogItem =
   | {
@@ -109,6 +110,9 @@ export async function ResourcesPage({
     if (selectedFilter === "invitados") {
       return teaching.collection === "orador-invitado";
     }
+    if (selectedFilter === "tematicas") {
+      return teaching.collection === "tematicas";
+    }
     if (selectedFilter === "eventos") {
       return eventCollectionSlugs.has(teaching.collection);
     }
@@ -176,12 +180,36 @@ export async function ResourcesPage({
     .slice(0, 10)
     .map(([item]) => item);
 
-  const filteredCollections = collections.filter((collection) =>
-    matchesQuery([
-      collection.name,
-      collection.description,
-      collection.kind
-    ])
+  const filteredCollections = collections
+    .filter((collection) =>
+      matchesQuery([
+        collection.name,
+        collection.description,
+        collection.kind
+      ])
+    )
+    .sort((a, b) => {
+      const aIsTopics = a.slug === "tematicas";
+      const bIsTopics = b.slug === "tematicas";
+
+      if (aIsTopics !== bIsTopics) return aIsTopics ? 1 : -1;
+
+      const latestDate = (slug: string) =>
+        teachings
+          .filter((teaching) => teaching.collection === slug)
+          .reduce(
+            (latest, teaching) =>
+              (teaching.date || "") > latest ? teaching.date || "" : latest,
+            ""
+          );
+
+      return latestDate(b.slug).localeCompare(latestDate(a.slug));
+    });
+  const seriesCollections = filteredCollections.filter(
+    (collection) => collection.kind === "serie"
+  );
+  const eventCollections = filteredCollections.filter(
+    (collection) => collection.kind === "evento"
   );
 
   const teachingItems: CatalogItem[] = catalogTeachings
@@ -268,6 +296,7 @@ export async function ResourcesPage({
             series: "Series y eventos",
             eventos: "Eventos",
             invitados: "Oradores invitados",
+            tematicas: "Enseñanzas temáticas",
             articulos: "Artículos"
           },
           sections: {
@@ -275,6 +304,10 @@ export async function ResourcesPage({
             ensenanzas: "Enseñanzas",
             articulos: "Artículos"
           },
+          allResourcesCta: "Ver todos los recursos",
+          allResourcesTitle: "Explora todos nuestros recursos",
+          allResourcesBody:
+            "Encuentra enseñanzas, artículos y otros contenidos para seguir creciendo en el evangelio.",
           catalogTitle: "Catálogo",
           articleLabel: "Artículo",
           teachingFilters: "Filtrar",
@@ -345,6 +378,7 @@ export async function ResourcesPage({
             series: "Series and events",
             eventos: "Events",
             invitados: "Guest speakers",
+            tematicas: "Topical teachings",
             articulos: "Articles"
           },
           sections: {
@@ -352,6 +386,10 @@ export async function ResourcesPage({
             ensenanzas: "Teachings",
             articulos: "Articles"
           },
+          allResourcesCta: "View all resources",
+          allResourcesTitle: "Explore all our resources",
+          allResourcesBody:
+            "Find teachings, articles, and other content to keep growing in the gospel.",
           catalogTitle: "Catalog",
           articleLabel: "Article",
           teachingFilters: "Filter",
@@ -534,7 +572,7 @@ export async function ResourcesPage({
     <>
       <SiteHeader locale={locale} />
       <main>
-        <section className="about-page-hero resources-hero">
+        {selectedFilter !== "series" && <section className="about-page-hero resources-hero">
           <div className="container about-page-hero-inner resources-hero-inner">
             <div className="about-page-hero-copy resources-hero-copy">
               <h1>
@@ -634,16 +672,42 @@ export async function ResourcesPage({
               )}
             </div>
           </div>
-        </section>
+        </section>}
 
-        {filteredCollections.length > 0 && (
+        {selectedFilter !== "series" && filteredCollections.length > 0 && (
+          <section className="section resource-hub-section" data-reveal>
+            <div className="container">
+              <div className="subsection-heading with-link">
+                <h2>{labels.sections.series}</h2>
+                {filteredCollections.length > 6 && (
+                  <Link href={`${resourcePath}?tipo=series`}>
+                    {locale === "es" ? "Ver series" : "View series"} →
+                  </Link>
+                )}
+              </div>
+              <div className="collection-grid">
+                {filteredCollections.slice(0, 6).map((collection) => (
+                  <CollectionCard
+                    compact
+                    key={collection.slug}
+                    collection={collection}
+                    count={teachings.filter((teaching) => teaching.collection === collection.slug).length}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {selectedFilter === "series" && <>
+        {seriesCollections.length > 0 && (
           <section className="section resource-hub-section" data-reveal>
             <div className="container">
               <div className="subsection-heading">
-                <h2>{labels.sections.series}</h2>
+                <h2>{locale === "es" ? "Series" : "Series"}</h2>
               </div>
               <div className="collection-grid">
-                {filteredCollections.map((collection) => (
+                {seriesCollections.map((collection) => (
                   <CollectionCard
                     compact
                     key={collection.slug}
@@ -660,6 +724,45 @@ export async function ResourcesPage({
             </div>
           </section>
         )}
+
+        {eventCollections.length > 0 && (
+          <section className="section resource-hub-section" data-reveal>
+            <div className="container">
+              <div className="subsection-heading">
+                <h2>{locale === "es" ? "Eventos" : "Events"}</h2>
+              </div>
+              <div className="collection-grid">
+                {eventCollections.map((collection) => (
+                  <CollectionCard
+                    compact
+                    key={collection.slug}
+                    collection={collection}
+                    count={teachings.filter((teaching) => teaching.collection === collection.slug).length}
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {selectedFilter === "series" && (
+          <section className="section resource-hub-section resources-expository-section">
+            <div className="container">
+              <div className="resources-expository-layout" data-reveal>
+                <div className="resources-expository-heading">
+                  <h2>{labels.allResourcesTitle}</h2>
+                </div>
+                <div className="resources-expository-body">
+                  <div className="about-page-copy"><p>{labels.allResourcesBody}</p></div>
+                </div>
+                <Link className="button secondary resources-expository-cta" href={resourcePath}>
+                  {labels.allResourcesCta}
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
+        </>}
 
         {selectedFilter !== "series" && (
           <section
@@ -919,7 +1022,7 @@ export async function ResourcesPage({
           </section>
         )}
 
-        <section className="section resource-hub-section resources-expository-section">
+        {selectedFilter !== "series" && <section className="section resource-hub-section resources-expository-section">
           <div className="container">
             <div className="resources-expository-layout" data-reveal>
               <div className="resources-expository-heading">
@@ -940,7 +1043,7 @@ export async function ResourcesPage({
               </Link>
             </div>
           </div>
-        </section>
+        </section>}
       </main>
       <SiteFooter locale={locale} />
     </>

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { seriesImage } from "@/lib/series-image";
 import { localePath } from "@/lib/site";
 import type { Collection } from "@/lib/types";
 
@@ -14,15 +15,16 @@ export function CollectionCard({
   compact?: boolean;
 }) {
   const locale = collection.locale;
+  const image = seriesImage(collection, "horizontal");
   return (
     <Link
       className={`collection-card${compact ? " compact" : ""}`}
       href={localePath(locale, `/ensenanzas/${collection.slug}`)}
     >
       <div className="collection-image">
-        {collection.image ? (
+        {image ? (
           <Image
-            src={collection.image}
+            src={image}
             alt=""
             fill
             sizes="(max-width: 720px) 92vw, (max-width: 1100px) 45vw, 32vw"

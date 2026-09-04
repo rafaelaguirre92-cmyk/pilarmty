@@ -4118,24 +4118,62 @@ html[data-theme="dark"] .topic-publish-control.btn:not(.is-published) {
   flex-shrink: 0 !important;
 }
 
+.doc-controls__meta .doc-controls__list-item:first-child .status[title$=": Modificado"] .status__value,
 .doc-controls__meta .doc-controls__list-item:first-child .status__value.creator-status--changed {
   background: #eaf1ff !important;
   color: #215eb5 !important;
   border-color: #c9dcff !important;
 }
 
+.doc-controls__meta .doc-controls__list-item:first-child .status[title$=": Modificado"] .status__value::before,
 .doc-controls__meta .doc-controls__list-item:first-child .status__value.creator-status--changed::before {
   background-color: #2d6fc5 !important;
 }
 
+.doc-controls__meta .doc-controls__list-item:first-child .status[title$=": Publicado"] .status__value,
 .doc-controls__meta .doc-controls__list-item:first-child .status__value.creator-status--published {
   background: #e8f5e9 !important;
   color: #1b5e20 !important;
   border-color: #c8e6c9 !important;
 }
 
+.doc-controls__meta .doc-controls__list-item:first-child .status[title$=": Publicado"] .status__value::before,
 .doc-controls__meta .doc-controls__list-item:first-child .status__value.creator-status--published::before {
   background-color: #2e7d32 !important;
+}
+
+html[data-theme="dark"] .doc-controls__meta .doc-controls__list-item:first-child .status__value {
+  background: rgba(245, 124, 0, 0.18) !important;
+  color: #ffb74d !important;
+  border-color: rgba(245, 124, 0, 0.3) !important;
+}
+
+html[data-theme="dark"] .doc-controls__meta .doc-controls__list-item:first-child .status__value::before {
+  background-color: #ffb74d !important;
+}
+
+html[data-theme="dark"] .doc-controls__meta .doc-controls__list-item:first-child .status[title$=": Modificado"] .status__value,
+html[data-theme="dark"] .doc-controls__meta .doc-controls__list-item:first-child .status__value.creator-status--changed {
+  background: rgba(45, 111, 197, 0.2) !important;
+  color: #91bcff !important;
+  border-color: rgba(145, 188, 255, 0.35) !important;
+}
+
+html[data-theme="dark"] .doc-controls__meta .doc-controls__list-item:first-child .status[title$=": Modificado"] .status__value::before,
+html[data-theme="dark"] .doc-controls__meta .doc-controls__list-item:first-child .status__value.creator-status--changed::before {
+  background-color: #91bcff !important;
+}
+
+html[data-theme="dark"] .doc-controls__meta .doc-controls__list-item:first-child .status[title$=": Publicado"] .status__value,
+html[data-theme="dark"] .doc-controls__meta .doc-controls__list-item:first-child .status__value.creator-status--published {
+  background: rgba(46, 125, 50, 0.2) !important;
+  color: #81c784 !important;
+  border-color: rgba(46, 125, 50, 0.35) !important;
+}
+
+html[data-theme="dark"] .doc-controls__meta .doc-controls__list-item:first-child .status[title$=": Publicado"] .status__value::before,
+html[data-theme="dark"] .doc-controls__meta .doc-controls__list-item:first-child .status__value.creator-status--published::before {
+  background-color: #81c784 !important;
 }
 
 .doc-controls #action-revert-to-published {

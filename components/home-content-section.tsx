@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { HomeSeriesGrid } from "@/components/home-series-grid";
+
 import {
   getCollections,
   getResources,
@@ -149,28 +151,7 @@ export async function HomeContentSection({ locale }: { locale: Locale }) {
                 {copy.seriesAction}
               </Link>
             </div>
-            <div className="home-series-grid">
-              {recentCollections.map((collection) => (
-                <Link
-                  aria-label={collection.name}
-                  className="home-series-card"
-                  href={localePath(
-                    locale,
-                    `/ensenanzas/${collection.slug}`
-                  )}
-                  key={collection.slug}
-                >
-                  {collection.image && (
-                    <Image
-                      src={collection.image}
-                      alt={collection.name}
-                      fill
-                      sizes="(max-width: 979px) calc(100vw - 32px), 33vw"
-                    />
-                  )}
-                </Link>
-              ))}
-            </div>
+            <HomeSeriesGrid collections={recentCollections} locale={locale} />
           </div>
         )}
 

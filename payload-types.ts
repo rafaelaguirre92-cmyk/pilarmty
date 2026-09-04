@@ -265,7 +265,18 @@ export interface Series {
   slug: string;
   kind: 'series' | 'event';
   description?: string | null;
+  /**
+   * Formato recomendado: 1600 × 900 px. Es la portada principal y conserva las imágenes existentes.
+   */
   image?: (number | null) | Media;
+  /**
+   * Formato recomendado: 1200 × 1200 px.
+   */
+  imageSquare?: (number | null) | Media;
+  /**
+   * Formato recomendado: 1080 × 1920 px.
+   */
+  imageVertical?: (number | null) | Media;
   /**
    * Completa solo lo que necesite diferir del contenido principal. El sitio genera canonical, Open Graph y datos estructurados automáticamente.
    */
@@ -794,6 +805,8 @@ export interface SeriesSelect<T extends boolean = true> {
   kind?: T;
   description?: T;
   image?: T;
+  imageSquare?: T;
+  imageVertical?: T;
   seo?:
     | T
     | {

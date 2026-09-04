@@ -60,7 +60,44 @@ export const Series: CollectionConfig = {
       ]
     },
     { name: "description", type: "textarea", label: "Descripción", localized: true },
-    { name: "image", type: "upload", relationTo: "media", label: "Imagen principal" },
+    {
+      type: "collapsible",
+      label: "Portadas de la serie",
+      admin: {
+        condition: (_data, siblingData) => siblingData?.kind === "series",
+        description:
+          "Carga cada composición por separado para que el sitio elija automáticamente la más adecuada.",
+        initCollapsed: false
+      },
+      fields: [
+        {
+          name: "image",
+          type: "upload",
+          relationTo: "media",
+          label: "Horizontal · 16:9",
+          filterOptions: { mimeType: { contains: "image" } },
+          admin: {
+            description: "Formato recomendado: 1600 × 900 px. Es la portada principal y conserva las imágenes existentes."
+          }
+        },
+        {
+          name: "imageSquare",
+          type: "upload",
+          relationTo: "media",
+          label: "Cuadrada · 1:1",
+          filterOptions: { mimeType: { contains: "image" } },
+          admin: { description: "Formato recomendado: 1200 × 1200 px." }
+        },
+        {
+          name: "imageVertical",
+          type: "upload",
+          relationTo: "media",
+          label: "Vertical · 9:16",
+          filterOptions: { mimeType: { contains: "image" } },
+          admin: { description: "Formato recomendado: 1080 × 1920 px." }
+        }
+      ]
+    },
     seoFields,
     confirmSlugChangeField,
     ...translationReviewFields,

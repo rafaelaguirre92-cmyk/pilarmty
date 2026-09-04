@@ -8,6 +8,8 @@ export type Collection = {
   kind: CollectionKind;
   description: string;
   image?: string;
+  imageSquare?: string;
+  imageVertical?: string;
   locale: Locale;
 };
 

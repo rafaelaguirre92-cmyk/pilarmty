@@ -69,6 +69,8 @@ function mapSeries(doc: Series, locale: Locale): Collection {
     kind: doc.kind === "event" ? "evento" : "serie",
     description: doc.description || "",
     image: mediaUrl(doc.image),
+    imageSquare: mediaUrl(doc.imageSquare),
+    imageVertical: mediaUrl(doc.imageVertical),
     locale
   };
 }
@@ -227,7 +229,7 @@ async function queryCollections(locale: Locale, preview: boolean) {
 
 const cachedCollections = unstable_cache(
   (locale: Locale) => queryCollections(locale, false),
-  ["payload-series-v5"],
+  ["payload-series-v6"],
   { revalidate: 300, tags: ["payload-content", "payload-series"] }
 );
 

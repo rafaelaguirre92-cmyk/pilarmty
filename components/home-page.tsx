@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { ContactForm } from "@/components/contact-form";
+import { HomeAboutGallery } from "@/components/home-about-gallery";
 import { HomeCommunitiesSection } from "@/components/home-communities-section";
 import { HomeContentSection } from "@/components/home-content-section";
 import { UpcomingEventsSection } from "@/components/upcoming-events-section";
@@ -149,50 +150,7 @@ export function HomePage({ locale }: { locale: Locale }) {
               )}
             </p>
 
-            <div className="home-about-gallery">
-              <div
-                className="home-about-photo home-about-photo-left"
-                data-card-parallax="-0.03"
-              >
-                <Image
-                  src="/images/wix/home/about-left.webp"
-                  alt={
-                    locale === "es"
-                      ? "Iglesia Pilar reunida en comunidad"
-                      : "Pilar Church gathered in community"
-                  }
-                  fill
-                  sizes="(max-width: 719px) calc(100vw - 32px), 33vw"
-                />
-              </div>
-              <div className="home-about-photo home-about-photo-featured">
-                <Image
-                  src="/images/wix/home/about-center.jpg"
-                  alt={
-                    locale === "es"
-                      ? "Enseñanza bíblica en Iglesia Pilar"
-                      : "Bible teaching at Pilar Church"
-                  }
-                  fill
-                  sizes="(max-width: 719px) calc(100vw - 32px), 33vw"
-                />
-              </div>
-              <div
-                className="home-about-photo home-about-photo-right"
-                data-card-parallax="0.03"
-              >
-                <Image
-                  src="/images/wix/home/about-right.webp"
-                  alt={
-                    locale === "es"
-                      ? "Lectura y discipulado en Iglesia Pilar"
-                      : "Reading and discipleship at Pilar Church"
-                  }
-                  fill
-                  sizes="(max-width: 719px) calc(100vw - 32px), 33vw"
-                />
-              </div>
-            </div>
+            <HomeAboutGallery locale={locale} />
 
             <Link
               className="button home-about-action"
