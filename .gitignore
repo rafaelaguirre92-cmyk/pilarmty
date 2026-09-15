@@ -10,3 +10,4 @@ npm-debug.log*
 .payload
 public/payload-media
 .env*
+.private/

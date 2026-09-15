@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@payloadcms/ui";
 
 type Summary = {
   payloadToNotion: number;
@@ -37,14 +38,13 @@ export function NotionSyncButton({ enabled }: { enabled: boolean }) {
 
   return (
     <div className="creator-sync-action">
-      <button
-        className="creator-primary-action"
+      <Button
         disabled={!enabled || running}
         onClick={synchronize}
         type="button"
       >
         {running ? "Sincronizando…" : "Sincronizar ahora"}
-      </button>
+      </Button>
       {!enabled ? (
         <p className="creator-sync-message is-warning">
           Configura el token de Notion y habilita la escritura para activar esta función.

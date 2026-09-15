@@ -24,7 +24,7 @@ export const Series: CollectionConfig = {
   labels: { singular: "Serie o evento", plural: "Series y eventos" },
   admin: {
     useAsTitle: "title",
-    group: "Contenido",
+    group: "Metadata",
     defaultColumns: ["title", "kind", "_status"],
     preview: previewUrl("series"),
     livePreview: { url: previewUrl("series") }

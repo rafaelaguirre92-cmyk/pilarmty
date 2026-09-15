@@ -46,18 +46,6 @@ export const seoFields: Field = {
       type: "upload",
       relationTo: "media",
       label: "Imagen para compartir"
-    },
-    {
-      name: "metadataPreview",
-      type: "ui",
-      admin: {
-        components: {
-          Field: {
-            path: "./cms/components/MetadataPreview",
-            exportName: "MetadataPreview"
-          }
-        }
-      }
     }
   ]
 };

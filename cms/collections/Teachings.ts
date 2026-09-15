@@ -55,52 +55,6 @@ export const Teachings: CollectionConfig = {
     useAsTitle: "title",
     group: "Contenido",
     defaultColumns: ["title", "series", "author", "teachingDate", "_status"],
-    components: {
-      edit: {
-        beforeDocumentControls: [
-          {
-            path: "./cms/components/DocumentTitleEditor",
-            exportName: "DocumentTitleEditor"
-          },
-          {
-            path: "./cms/components/DocumentUrl",
-            exportName: "DocumentUrl"
-          },
-          {
-            path: "./cms/components/PublishDates",
-            exportName: "PublishDates"
-          },
-        ]
-      },
-      views: {
-        edit: {
-          default: {
-            Component: {
-              path: "./cms/components/TeachingSEOView",
-              exportName: "TeachingContentView"
-            }
-          },
-          seo: {
-            path: "/seo",
-            Component: {
-              path: "./cms/components/TeachingSEOView",
-              exportName: "TeachingSEOView"
-            },
-            tab: {
-              href: "/seo",
-              label: "SEO",
-              order: 200
-            }
-          }
-        }
-      },
-      beforeList: [
-        {
-          path: "./cms/components/ListQuickFilters",
-          exportName: "ListQuickFilters"
-        }
-      ]
-    },
     preview: previewUrl("teachings"),
     livePreview: { url: previewUrl("teachings") }
   },
@@ -212,13 +166,7 @@ export const Teachings: CollectionConfig = {
       relationTo: "authors",
       label: "Orador / Autor",
       admin: {
-        position: "sidebar",
-        components: {
-          Cell: {
-            path: "./cms/components/AuthorCell",
-            exportName: "AuthorCell"
-          }
-        }
+        position: "sidebar"
       }
     },
     {

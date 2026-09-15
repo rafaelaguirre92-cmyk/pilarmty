@@ -9,32 +9,8 @@ export const Topics: CollectionConfig = {
   labels: { singular: "Tema", plural: "Temas" },
   admin: {
     useAsTitle: "name",
-    group: "Contenido",
-    defaultColumns: ["name", "slug"],
-    components: {
-      edit: {
-        beforeDocumentControls: [
-          {
-            path: "./cms/components/TopicPublishControl",
-            exportName: "TopicPublishControl"
-          }
-        ],
-        editMenuItems: [
-          {
-            path: "./cms/components/TopicUnpublishAction",
-            exportName: "TopicUnpublishAction"
-          }
-        ]
-      },
-      views: {
-        list: {
-          Component: {
-            path: "./cms/components/TopicCloudView",
-            exportName: "TopicCloudView"
-          }
-        }
-      }
-    }
+    group: "Metadata",
+    defaultColumns: ["name", "slug"]
   },
   access: { read: () => true, create: authenticated, update: authenticated, delete: authenticated },
   trash: true,
@@ -51,7 +27,7 @@ export const Topics: CollectionConfig = {
       label: "Publicar página manualmente",
       defaultValue: false,
       admin: {
-        hidden: true
+        description: "Publica la página cuando tenga contenido, aunque no alcance el mínimo automático de 3 publicaciones."
       }
     },
     {
@@ -60,7 +36,7 @@ export const Topics: CollectionConfig = {
       label: "Despublicar página manualmente",
       defaultValue: false,
       admin: {
-        hidden: true
+        description: "Oculta la página del tema. Tiene prioridad sobre la publicación manual y automática."
       }
     },
     { name: "migrationKey", type: "text", unique: true, index: true, admin: { hidden: true } }

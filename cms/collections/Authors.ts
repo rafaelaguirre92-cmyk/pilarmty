@@ -10,7 +10,7 @@ import {
 export const Authors: CollectionConfig = {
   slug: "authors",
   labels: { singular: "Autor u orador", plural: "Autores y oradores" },
-  admin: { useAsTitle: "name", group: "Contenido", defaultColumns: ["name", "slug"] },
+  admin: { useAsTitle: "name", group: "Metadata", defaultColumns: ["name", "slug"] },
   access: { read: () => true, create: authenticated, update: authenticated, delete: authenticated },
   hooks: {
     afterChange: [afterRelatedContentChange],

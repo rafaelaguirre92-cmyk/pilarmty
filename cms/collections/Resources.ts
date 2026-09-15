@@ -31,14 +31,6 @@ export const Resources: CollectionConfig = {
     useAsTitle: "title",
     group: "Contenido",
     defaultColumns: ["title", "kind", "contentDate", "_status"],
-    components: {
-      beforeList: [
-        {
-          path: "./cms/components/ListQuickFilters",
-          exportName: "ListQuickFilters"
-        }
-      ]
-    },
     preview: previewUrl("resources"),
     livePreview: { url: previewUrl("resources") }
   },

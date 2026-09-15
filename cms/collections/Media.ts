@@ -9,7 +9,7 @@ import {
 export const Media: CollectionConfig = {
   slug: "media",
   labels: { singular: "Archivo", plural: "Biblioteca multimedia" },
-  admin: { hidden: false, useAsTitle: "filename", group: "Contenido" },
+  admin: { hidden: false, useAsTitle: "filename", group: "Metadata" },
   access: {
     read: () => true,
     create: authenticated,

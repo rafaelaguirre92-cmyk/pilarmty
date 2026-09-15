@@ -10,7 +10,7 @@ export const Users: CollectionConfig = {
     lockTime: 10 * 60 * 1000,
     tokenExpiration: 2 * 60 * 60
   },
-  admin: { hidden: true, useAsTitle: "email", group: "Administración" },
+  admin: { hidden: false, useAsTitle: "email", group: "Administración" },
   access: {
     admin: ({ req }) => Boolean(req.user),
     read: authenticated,

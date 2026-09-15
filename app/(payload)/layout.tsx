@@ -10,9 +10,7 @@ import type React from "react";
 import type { Metadata } from "next";
 
 import { ThemeFavicon } from "@/components/theme-favicon";
-import { MobileBlocker } from "@/cms/components/MobileBlocker";
 import { importMap } from "./admin/importMap.js";
-import "./custom.css";
 
 export const metadata: Metadata = {
   ...payloadMetadata,
@@ -35,7 +33,6 @@ export default function PayloadLayout({ children }: { children: React.ReactNode 
   return (
     <RootLayout config={config} importMap={importMap} serverFunction={serverFunction}>
       <ThemeFavicon />
-      <MobileBlocker />
       {children}
     </RootLayout>
   );

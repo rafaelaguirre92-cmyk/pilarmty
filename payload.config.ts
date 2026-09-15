@@ -44,60 +44,18 @@ export default buildConfig({
     user: Users.slug,
     timezones: { defaultTimezone: "America/Monterrey" },
     components: {
-      beforeNavLinks: [
-        {
-          path: "./cms/components/AdminCreateLink",
-          exportName: "AdminCreateLink"
-        }
-      ],
-      graphics: {
-        Icon: {
-          path: "./cms/components/AdminBrand",
-          exportName: "AdminIcon"
-        },
-        Logo: {
-          path: "./cms/components/AdminBrand",
-          exportName: "AdminLogo"
-        }
-      },
-      views: {
-        dashboard: {
-          Component: {
-            path: "./cms/components/CreatorDashboard",
-            exportName: "CreatorDashboard"
-          }
-        },
-        publications: {
-          path: "/publicaciones",
-          Component: {
-            path: "./cms/components/CreatorPublicationsView",
-            exportName: "CreatorPublicationsView"
-          }
-        },
-        createContent: {
-          path: "/crear",
-          Component: {
-            path: "./cms/components/CreateContentView",
-            exportName: "CreateContentView"
-          }
-        },
-        settings: {
-          path: "/configuracion",
-          Component: {
-            path: "./cms/components/CreatorSettingsView",
-            exportName: "CreatorSettingsView"
-          }
-        }
-      }
+      beforeDashboard: [{
+        path: "./cms/components/NotionSyncPanel",
+        exportName: "NotionSyncPanel"
+      }]
     },
     meta: {
       titleSuffix: "— Iglesia Pilar",
       description: "Administración editorial de Iglesia Pilar"
     },
-    theme: "light",
     importMap: { baseDir: dirname }
   },
-  collections: [Users, Media, Authors, Topics, Series, Teachings, Resources, Redirects],
+  collections: [Teachings, Resources, Media, Authors, Topics, Series, Users, Redirects],
   cors: [siteUrl],
   csrf: [siteUrl],
   db,

@@ -21,3 +21,8 @@ const bankDetails: GiveBankDetails = {
 export function getGiveBankDetails(_locale: Locale) {
   return bankDetails;
 }
+
+// Keep online donations opt-in until Stripe has been fully approved for live use.
+export function onlineGivingIsEnabled() {
+  return process.env.ONLINE_GIVING_ENABLED === "true";
+}

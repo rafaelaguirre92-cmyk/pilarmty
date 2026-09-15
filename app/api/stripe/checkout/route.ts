@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { onlineGivingIsEnabled } from "@/lib/give";
+
 const checkoutSchema = z.object({
   amount: z.coerce.number().int().min(50).max(500_000),
   frequency: z.enum(["once", "monthly"]),
@@ -18,6 +20,10 @@ function rateLimited(ip: string) {
 }
 
 export async function POST(request: Request) {
+  if (!onlineGivingIsEnabled()) {
+    return Response.json({ error: "online_giving_disabled" }, { status: 404 });
+  }
+
   const ip =
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     "unknown";

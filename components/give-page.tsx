@@ -7,7 +7,7 @@ import { GiveOnlineSection } from "@/components/give-online-section";
 import { ScriptureTooltip } from "@/components/scripture-tooltip";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
-import { getGiveBankDetails } from "@/lib/give";
+import { getGiveBankDetails, onlineGivingIsEnabled } from "@/lib/give";
 import type { Locale } from "@/lib/types";
 
 const copy = {
@@ -168,6 +168,7 @@ const copy = {
 export function GivePage({ locale }: { locale: Locale }) {
   const content = copy[locale];
   const bank = getGiveBankDetails(locale);
+  const onlineGivingEnabled = onlineGivingIsEnabled();
 
   return (
     <>
@@ -240,15 +241,17 @@ export function GivePage({ locale }: { locale: Locale }) {
                   ))}
                 </article>
 
-                <GiveOnlineSection
-                  copy={{
-                    body: content.onlineBody,
-                    cta: content.onlineCta,
-                    title: content.onlineTitle
-                  }}
-                  locale={locale}
-                  number="03"
-                />
+                {onlineGivingEnabled && (
+                  <GiveOnlineSection
+                    copy={{
+                      body: content.onlineBody,
+                      cta: content.onlineCta,
+                      title: content.onlineTitle
+                    }}
+                    locale={locale}
+                    number="03"
+                  />
+                )}
               </div>
 
               <article className="give-method-card give-transfer-card">
