@@ -47,7 +47,10 @@ export async function POST(request: Request) {
   const configuredSiteUrl =
     process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL;
   const requestOrigin = new URL(request.url).origin;
-  const siteUrl = (configuredSiteUrl || requestOrigin).replace(/\/$/, "");
+  let siteUrl = (configuredSiteUrl || requestOrigin).replace(/\/$/, "");
+  if (!siteUrl.startsWith("http://") && !siteUrl.startsWith("https://")) {
+    siteUrl = `https://${siteUrl}`;
+  }
   const givePath = checkout.locale === "en" ? "/en/dar" : "/dar";
   const successUrl =
     process.env.STRIPE_GIVE_SUCCESS_URL ||
@@ -70,18 +73,11 @@ export async function POST(request: Request) {
         : "Contribution to Iglesia Pilar",
     "line_items[0][quantity]": "1",
     "metadata[frequency]": checkout.frequency,
-    "metadata[locale]": checkout.locale,
-    integration_identifier: `iglesia_pilar_give_${crypto
-      .randomUUID()
-      .replace(/[^a-z]/gi, "")
-      .slice(0, 8)
-      .padEnd(8, "a")}`
+    "metadata[locale]": checkout.locale
   });
 
   if (isRecurring) {
     params.set("line_items[0][price_data][recurring][interval]", "month");
-  } else {
-    params.set("submit_type", "donate");
   }
 
   const stripeResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
@@ -95,7 +91,7 @@ export async function POST(request: Request) {
     cache: "no-store"
   });
   const stripeSession = (await stripeResponse.json()) as {
-    error?: { message?: string };
+    error?: { message?: string; type?: string; code?: string };
     client_secret?: string;
   };
 
@@ -105,7 +101,10 @@ export async function POST(request: Request) {
       stripeResponse.status,
       stripeSession.error?.message || "unknown_error"
     );
-    return Response.json({ error: "stripe_checkout_failed" }, { status: 502 });
+    return Response.json({
+      error: "stripe_checkout_failed",
+      message: stripeSession.error?.message || "Error al comunicarse con Stripe."
+    }, { status: 502 });
   }
 
   const publishableKey =

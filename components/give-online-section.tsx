@@ -122,10 +122,11 @@ export function GiveOnlineSection({
         clientSecret?: string;
         publishableKey?: string;
         error?: string;
+        message?: string;
       };
 
       if (!response.ok || !payload.clientSecret) {
-        throw new Error(payload.error || "checkout_unavailable");
+        throw new Error(payload.message || payload.error || "checkout_unavailable");
       }
 
       if (payload.publishableKey && !publishableKey) {
@@ -134,11 +135,20 @@ export function GiveOnlineSection({
 
       setCheckoutClientSecret(payload.clientSecret);
       setStep("checkout");
-    } catch {
+    } catch (err) {
+      const customMsg =
+        err instanceof Error &&
+        err.message &&
+        err.message !== "checkout_unavailable" &&
+        err.message !== "stripe_checkout_failed"
+          ? err.message
+          : null;
+
       setError(
-        isSpanish
-          ? "No pudimos iniciar el pago en este momento. Intenta nuevamente más tarde."
-          : "We could not start the payment right now. Please try again later."
+        customMsg ||
+          (isSpanish
+            ? "No pudimos iniciar el pago en este momento. Intenta nuevamente más tarde."
+            : "We could not start the payment right now. Please try again later.")
       );
     } finally {
       setLoading(false);
