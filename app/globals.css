@@ -8191,7 +8191,7 @@ body.resource-filters-open {
 
 .give-online-dialog--checkout {
   width: min(580px, calc(100vw - 24px));
-  max-height: calc(100dvh - 32px);
+  max-height: min(94vh, 900px);
   overflow-y: auto;
 }
 
@@ -8200,8 +8200,8 @@ body.resource-filters-open {
 }
 
 .give-online-dialog--checkout .community-inquiry-dialog-inner {
-  padding: 16px 20px 14px;
-  gap: 8px;
+  padding: 20px 24px 36px;
+  gap: 10px;
 }
 
 .give-online-dialog .community-inquiry-dialog-description {
@@ -8220,7 +8220,7 @@ body.resource-filters-open {
 .give-online-checkout-step {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .give-online-checkout-topbar {
@@ -8274,6 +8274,7 @@ body.resource-filters-open {
 .give-online-embedded-checkout {
   min-height: 360px;
   margin: 0;
+  padding-bottom: 8px;
   overflow: visible;
   border-radius: var(--radius-md);
 }
