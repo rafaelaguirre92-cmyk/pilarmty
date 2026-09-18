@@ -8185,12 +8185,23 @@ body.resource-filters-open {
 
 .give-online-dialog {
   width: min(560px, calc(100vw - 32px));
-  max-height: min(88vh, 820px);
+  max-height: min(90vh, 820px);
+  overflow-y: auto;
+}
+
+.give-online-dialog--checkout {
+  width: min(580px, calc(100vw - 24px));
+  max-height: calc(100dvh - 32px);
   overflow-y: auto;
 }
 
 .give-online-dialog .community-inquiry-dialog-inner {
   padding: clamp(28px, 4.5vw, 40px);
+}
+
+.give-online-dialog--checkout .community-inquiry-dialog-inner {
+  padding: 16px 20px 14px;
+  gap: 8px;
 }
 
 .give-online-dialog .community-inquiry-dialog-description {
@@ -8206,11 +8217,25 @@ body.resource-filters-open {
   box-shadow: none;
 }
 
+.give-online-checkout-step {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.give-online-checkout-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 36px;
+  min-height: 32px;
+}
+
 .give-online-back-button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 12px;
+  margin: 0;
   padding: 4px 0;
   border: none;
   background: transparent;
@@ -8232,21 +8257,12 @@ body.resource-filters-open {
   height: 14px;
 }
 
-.give-online-checkout-header {
-  display: grid;
-  gap: 4px;
-}
-
-.give-online-checkout-header h2 {
-  margin: 0;
-}
-
 .give-online-checkout-badge {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   width: fit-content;
-  margin: 4px 0 12px;
+  margin: 0;
   padding: 4px 12px;
   border-radius: 999px;
   background: var(--sage);
@@ -8256,9 +8272,9 @@ body.resource-filters-open {
 }
 
 .give-online-embedded-checkout {
-  min-height: 480px;
-  margin-top: 0.5rem;
-  overflow: hidden;
+  min-height: 360px;
+  margin: 0;
+  overflow: visible;
   border-radius: var(--radius-md);
 }
 

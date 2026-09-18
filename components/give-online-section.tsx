@@ -188,7 +188,9 @@ export function GiveOnlineSection({
 
       <dialog
         aria-labelledby={titleId}
-        className="community-inquiry-dialog give-online-dialog"
+        className={`community-inquiry-dialog give-online-dialog ${
+          step === "checkout" ? "give-online-dialog--checkout" : ""
+        }`}
         ref={dialogRef}
         onClose={handleClose}
         onClick={(event) => {
@@ -306,32 +308,26 @@ export function GiveOnlineSection({
 
           {step === "checkout" && (
             <div className="give-online-checkout-step">
-              <button
-                className="give-online-back-button"
-                type="button"
-                onClick={() => {
-                  setStep("amount");
-                  setError("");
-                }}
-              >
-                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M19 12H5M12 19l-7-7 7-7" />
-                </svg>
-                {isSpanish ? "Cambiar monto" : "Change amount"}
-              </button>
+              <div className="give-online-checkout-topbar">
+                <button
+                  className="give-online-back-button"
+                  type="button"
+                  onClick={() => {
+                    setStep("amount");
+                    setError("");
+                  }}
+                >
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 12H5M12 19l-7-7 7-7" />
+                  </svg>
+                  {isSpanish ? "Cambiar monto" : "Change amount"}
+                </button>
 
-              <div className="give-online-checkout-header">
-                <h2 id={titleId}>{copy.title}</h2>
                 <div className="give-online-checkout-badge">
                   <span>{formattedAmount}</span>
                   <span aria-hidden="true">·</span>
                   <span>{frequencyLabel}</span>
                 </div>
-                <p className="community-inquiry-dialog-description">
-                  {isSpanish
-                    ? "Ingresa los datos de tu tarjeta para completar tu aportación de forma segura:"
-                    : "Enter your card details to securely complete your gift:"}
-                </p>
               </div>
 
               <div className="give-online-embedded-checkout">
