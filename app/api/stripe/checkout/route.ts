@@ -59,6 +59,7 @@ export async function POST(request: Request) {
   const params = new URLSearchParams({
     mode: isRecurring ? "subscription" : "payment",
     ui_mode: "embedded",
+    redirect_on_completion: "if_required",
     locale: checkout.locale,
     return_url: returnUrl,
     "line_items[0][price_data][currency]": "mxn",
@@ -107,5 +108,14 @@ export async function POST(request: Request) {
     return Response.json({ error: "stripe_checkout_failed" }, { status: 502 });
   }
 
-  return Response.json({ clientSecret: stripeSession.client_secret, returnUrl: successUrl });
+  const publishableKey =
+    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
+    process.env.STRIPE_PUBLISHABLE_KEY ||
+    null;
+
+  return Response.json({
+    clientSecret: stripeSession.client_secret,
+    publishableKey,
+    returnUrl: successUrl
+  });
 }
