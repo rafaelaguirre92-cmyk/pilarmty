@@ -61,7 +61,7 @@ export async function POST(request: Request) {
   const isRecurring = checkout.frequency === "monthly";
   const params = new URLSearchParams({
     mode: isRecurring ? "subscription" : "payment",
-    ui_mode: "embedded",
+    ui_mode: "embedded_page",
     redirect_on_completion: "if_required",
     locale: checkout.locale,
     return_url: returnUrl,
