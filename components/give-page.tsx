@@ -232,7 +232,6 @@ export function GivePage({ locale }: { locale: Locale }) {
             </div>
 
             <div className="give-methods-grid">
-              <div className="give-methods-col-left">
                 <article className="give-method-card">
                   <span className="give-method-number">01</span>
                   <h3>{content.inPersonTitle}</h3>
@@ -240,19 +239,6 @@ export function GivePage({ locale }: { locale: Locale }) {
                     <p key={paragraph}>{paragraph}</p>
                   ))}
                 </article>
-
-                {onlineGivingEnabled && (
-                  <GiveOnlineSection
-                    copy={{
-                      body: content.onlineBody,
-                      cta: content.onlineCta,
-                      title: content.onlineTitle
-                    }}
-                    locale={locale}
-                    number="03"
-                  />
-                )}
-              </div>
 
               <article className="give-method-card give-transfer-card">
                 <div className="give-method-card-header">
@@ -309,6 +295,17 @@ export function GivePage({ locale }: { locale: Locale }) {
                   </div>
                 </dl>
               </article>
+              {onlineGivingEnabled && (
+                <GiveOnlineSection
+                  copy={{
+                    body: content.onlineBody,
+                    cta: content.onlineCta,
+                    title: content.onlineTitle
+                  }}
+                  locale={locale}
+                  number="03"
+                />
+              )}
             </div>
           </div>
         </section>

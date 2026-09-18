@@ -8110,11 +8110,10 @@ body.resource-filters-open {
     align-items: start;
     gap: 24px;
   }
-}
-
-.give-methods-col-left {
-  display: grid;
-  gap: 24px;
+  .give-methods-grid > .give-transfer-card {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
 }
 
 .give-method-card {
