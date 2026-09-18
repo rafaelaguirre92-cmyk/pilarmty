@@ -1,6 +1,8 @@
 "use client";
 
 import { FormEvent, useEffect, useId, useRef, useState } from "react";
+import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
 
 import type { Locale } from "@/lib/types";
 
@@ -11,6 +13,8 @@ type GiveOnlineCopy = {
 };
 
 const presetAmounts = [300, 500, 1000];
+const stripePublishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = stripePublishableKey ? loadStripe(stripePublishableKey) : null;
 
 export function GiveOnlineSection({
   copy,
@@ -27,6 +31,7 @@ export function GiveOnlineSection({
   const [customAmount, setCustomAmount] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [checkoutClientSecret, setCheckoutClientSecret] = useState<string | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
@@ -52,6 +57,7 @@ export function GiveOnlineSection({
       dialog.showModal();
     } else if (dialog.open) {
       dialog.close();
+      setCheckoutClientSecret(null);
     }
   }, [isOpen]);
 
@@ -70,10 +76,10 @@ export function GiveOnlineSection({
           locale
         })
       });
-      const payload = (await response.json()) as { url?: string };
+      const payload = (await response.json()) as { clientSecret?: string };
 
-      if (!response.ok || !payload.url) throw new Error("checkout_unavailable");
-      window.location.assign(payload.url);
+      if (!response.ok || !payload.clientSecret) throw new Error("checkout_unavailable");
+      setCheckoutClientSecret(payload.clientSecret);
     } catch {
       setError(
         isSpanish
@@ -204,7 +210,7 @@ export function GiveOnlineSection({
               </div>
             </fieldset>
 
-            <div className="give-online-actions">
+            {!checkoutClientSecret && <div className="give-online-actions">
               <p className="give-online-summary">
                 <span>{isSpanish ? "Tu aportación" : "Your gift"}</span>
                 <strong>{formattedAmount} · {frequencyLabel}</strong>
@@ -216,7 +222,17 @@ export function GiveOnlineSection({
                     : "Opening Stripe…"
                   : copy.cta}
               </button>
-            </div>
+            </div>}
+            {checkoutClientSecret && (
+              <div className="give-online-embedded-checkout">
+                <EmbeddedCheckoutProvider
+                  stripe={stripePromise}
+                  options={{ clientSecret: checkoutClientSecret }}
+                >
+                  <EmbeddedCheckout />
+                </EmbeddedCheckoutProvider>
+              </div>
+            )}
             {error && (
               <p aria-live="polite" className="give-online-error">
                 {error}

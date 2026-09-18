@@ -52,14 +52,15 @@ export async function POST(request: Request) {
   const successUrl =
     process.env.STRIPE_GIVE_SUCCESS_URL ||
     `${siteUrl}${givePath}?aportacion=gracias&session_id={CHECKOUT_SESSION_ID}`;
-  const cancelUrl =
-    process.env.STRIPE_GIVE_CANCEL_URL || `${siteUrl}${givePath}#dar-en-linea`;
+  const returnUrl =
+    process.env.STRIPE_GIVE_RETURN_URL ||
+    `${siteUrl}${givePath}?aportacion=resultado&session_id={CHECKOUT_SESSION_ID}`;
   const isRecurring = checkout.frequency === "monthly";
   const params = new URLSearchParams({
     mode: isRecurring ? "subscription" : "payment",
+    ui_mode: "embedded",
     locale: checkout.locale,
-    success_url: successUrl,
-    cancel_url: cancelUrl,
+    return_url: returnUrl,
     "line_items[0][price_data][currency]": "mxn",
     "line_items[0][price_data][unit_amount]": String(checkout.amount * 100),
     "line_items[0][price_data][product_data][name]":
@@ -68,7 +69,12 @@ export async function POST(request: Request) {
         : "Contribution to Iglesia Pilar",
     "line_items[0][quantity]": "1",
     "metadata[frequency]": checkout.frequency,
-    "metadata[locale]": checkout.locale
+    "metadata[locale]": checkout.locale,
+    integration_identifier: `iglesia_pilar_give_${crypto
+      .randomUUID()
+      .replace(/[^a-z]/gi, "")
+      .slice(0, 8)
+      .padEnd(8, "a")}`
   });
 
   if (isRecurring) {
@@ -89,10 +95,10 @@ export async function POST(request: Request) {
   });
   const stripeSession = (await stripeResponse.json()) as {
     error?: { message?: string };
-    url?: string;
+    client_secret?: string;
   };
 
-  if (!stripeResponse.ok || !stripeSession.url) {
+  if (!stripeResponse.ok || !stripeSession.client_secret) {
     console.error(
       "Stripe Checkout failed:",
       stripeResponse.status,
@@ -101,5 +107,5 @@ export async function POST(request: Request) {
     return Response.json({ error: "stripe_checkout_failed" }, { status: 502 });
   }
 
-  return Response.json({ url: stripeSession.url });
+  return Response.json({ clientSecret: stripeSession.client_secret, returnUrl: successUrl });
 }

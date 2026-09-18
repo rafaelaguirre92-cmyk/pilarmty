@@ -8204,6 +8204,13 @@ body.resource-filters-open {
   box-shadow: none;
 }
 
+.give-online-embedded-checkout {
+  min-height: 520px;
+  margin-top: 1rem;
+  overflow: hidden;
+  border-radius: 1rem;
+}
+
 .give-online-form fieldset {
   display: grid;
   min-width: 0;
