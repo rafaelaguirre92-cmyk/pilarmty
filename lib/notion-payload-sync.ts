@@ -128,14 +128,30 @@ async function save(
       context: { skipNotionSync: true, skipAutoTranslate: true }
     });
   }
-  return payload.create({
-    collection,
-    data: common as never,
-    locale: "es",
-    depth: 0,
-    overrideAccess: true,
-    context: { skipNotionSync: true, skipAutoTranslate: true }
-  });
+  try {
+    return await payload.create({
+      collection,
+      data: common as never,
+      locale: "es",
+      depth: 0,
+      overrideAccess: true,
+      context: { skipNotionSync: true, skipAutoTranslate: true }
+    });
+  } catch (error) {
+    // A second webhook or cron worker may have created this page between the
+    // lookup above and the insert. Re-read the unique link and update it.
+    const concurrent = await existingNotionDoc(payload, collection, page);
+    if (!concurrent) throw error;
+    return payload.update({
+      collection,
+      id: concurrent.id,
+      data: common as never,
+      locale: "es",
+      depth: 0,
+      overrideAccess: true,
+      context: { skipNotionSync: true, skipAutoTranslate: true }
+    });
+  }
 }
 
 async function confirmInNotion(

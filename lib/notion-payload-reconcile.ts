@@ -137,6 +137,7 @@ async function unlinkedPendingDocuments(payload: Payload, collection: SyncCollec
 }
 
 export type NotionPayloadSyncSummary = {
+  runId: string;
   startedAt: string;
   finishedAt: string;
   payloadToNotion: number;
@@ -144,7 +145,13 @@ export type NotionPayloadSyncSummary = {
   createdInNotion: number;
   unchanged: number;
   skipped: number;
-  errors: Array<{ collection?: SyncCollection; id?: number | string; notionPageId?: string; message: string }>;
+  errors: Array<{
+    collection?: SyncCollection;
+    id?: number | string;
+    notionPageId?: string;
+    title?: string;
+    message: string;
+  }>;
 };
 
 let activeRun: Promise<NotionPayloadSyncSummary> | null = null;
@@ -185,6 +192,7 @@ async function executeSync(payload: Payload): Promise<NotionPayloadSyncSummary> 
 
   const startedAt = new Date().toISOString();
   const summary: Omit<NotionPayloadSyncSummary, "finishedAt"> = {
+    runId: crypto.randomUUID(),
     startedAt,
     payloadToNotion: 0,
     notionToPayload: 0,
@@ -225,10 +233,11 @@ async function executeSync(payload: Payload): Promise<NotionPayloadSyncSummary> 
         summary.unchanged += 1;
       }
     } catch (error) {
-      summary.errors.push({
-        collection,
-        notionPageId: page.id,
-        message: error instanceof Error ? error.message : String(error)
+        summary.errors.push({
+          collection,
+          notionPageId: page.id,
+          title: propertyText(page.properties.Nombre) || undefined,
+          message: error instanceof Error ? error.message : String(error)
       });
     }
   }

@@ -4,12 +4,19 @@ import { useState } from "react";
 import { Button } from "@payloadcms/ui";
 
 type Summary = {
+  runId: string;
   payloadToNotion: number;
   notionToPayload: number;
   createdInNotion: number;
   unchanged: number;
   skipped: number;
-  errors: Array<{ message: string }>;
+  errors: Array<{
+    collection?: string;
+    id?: number | string;
+    notionPageId?: string;
+    title?: string;
+    message: string;
+  }>;
   finishedAt: string;
 };
 
@@ -58,6 +65,20 @@ export function NotionSyncButton({ enabled }: { enabled: boolean }) {
             {summary.payloadToNotion + summary.createdInNotion} enviados a Notion · {summary.notionToPayload} importados a Payload · {summary.unchanged} sin cambios
           </p>
           {summary.errors.length ? <p>{summary.errors.length} elementos requieren revisión.</p> : null}
+          {summary.errors.length ? (
+            <details className="creator-sync-errors">
+              <summary>Ver detalle de errores</summary>
+              <ul>
+                {summary.errors.map((item, index) => (
+                  <li key={`${item.notionPageId || item.id || "error"}-${index}`}>
+                    <strong>{item.title || "Elemento sin título"}</strong>
+                    <span>{item.collection || ""}{item.notionPageId ? ` · Notion ${item.notionPageId}` : ""}</span>
+                    <code>{item.message}</code>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          ) : null}
         </div>
       ) : null}
     </div>
