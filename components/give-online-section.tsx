@@ -1,8 +1,12 @@
 "use client";
 
 import { FormEvent, useEffect, useId, useMemo, useRef, useState } from "react";
-import { EmbeddedCheckout, EmbeddedCheckoutProvider } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
+import {
+  CheckoutElementsProvider,
+  PaymentElement,
+  useCheckoutElements
+} from "@stripe/react-stripe-js/checkout";
+import { loadStripe, type Appearance } from "@stripe/stripe-js";
 
 import type { Locale } from "@/lib/types";
 
@@ -40,9 +44,142 @@ export function GiveOnlineSection({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
+  const [checkoutReturnUrl, setCheckoutReturnUrl] = useState<string>("");
+  const [isDark, setIsDark] = useState(true);
+
   const stripePromise = useMemo(() => {
     return publishableKey ? loadStripe(publishableKey) : null;
   }, [publishableKey]);
+
+  useEffect(() => {
+    const updateTheme = () => {
+      const theme = document.documentElement.getAttribute("data-theme");
+      if (theme) {
+        setIsDark(theme === "dark");
+      } else {
+        setIsDark(window.matchMedia("(prefers-color-scheme: dark)").matches);
+      }
+    };
+    updateTheme();
+    const observer = new MutationObserver(updateTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"]
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  const stripeAppearance: Appearance = useMemo(() => {
+    const rules: Record<string, Record<string, string>> = isDark
+      ? {
+          ".Input": {
+            backgroundColor: "#10202d",
+            borderColor: "rgba(240, 236, 233, 0.2)",
+            color: "#f0ece9",
+            boxShadow: "none"
+          },
+          ".Input:focus": {
+            borderColor: "#aeb592",
+            boxShadow: "0 0 0 1px #aeb592"
+          },
+          ".Label": {
+            color: "rgba(240, 236, 233, 0.85)",
+            fontFamily: "Montserrat, sans-serif",
+            fontSize: "12px",
+            fontWeight: "700",
+            letterSpacing: "0.04em",
+            textTransform: "uppercase"
+          },
+          ".Tab": {
+            backgroundColor: "#10202d",
+            borderColor: "rgba(240, 236, 233, 0.18)",
+            color: "#f0ece9"
+          },
+          ".Tab:hover": {
+            borderColor: "#aeb592"
+          },
+          ".Tab--selected": {
+            backgroundColor: "#1d434b",
+            borderColor: "#aeb592",
+            color: "#f0ece9"
+          },
+          ".Block": {
+            backgroundColor: "transparent",
+            borderColor: "rgba(240, 236, 233, 0.15)"
+          }
+        }
+      : {
+          ".Input": {
+            backgroundColor: "#f8f9fa",
+            borderColor: "rgba(20, 37, 52, 0.18)",
+            color: "#142534",
+            boxShadow: "none"
+          },
+          ".Input:focus": {
+            borderColor: "#142534",
+            boxShadow: "0 0 0 1px #142534"
+          },
+          ".Label": {
+            color: "#53616e",
+            fontFamily: "Montserrat, sans-serif",
+            fontSize: "12px",
+            fontWeight: "700",
+            letterSpacing: "0.04em",
+            textTransform: "uppercase"
+          },
+          ".Tab": {
+            backgroundColor: "#f8f9fa",
+            borderColor: "rgba(20, 37, 52, 0.15)",
+            color: "#142534"
+          },
+          ".Tab:hover": {
+            borderColor: "#142534"
+          },
+          ".Tab--selected": {
+            backgroundColor: "#ffffff",
+            borderColor: "#142534",
+            color: "#142534"
+          },
+          ".Block": {
+            backgroundColor: "transparent",
+            borderColor: "rgba(20, 37, 52, 0.15)"
+          }
+        };
+
+    if (isDark) {
+      return {
+        theme: "night",
+        variables: {
+          fontFamily:
+            '"Montserrat Pilar", Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+          colorPrimary: "#aeb592",
+          colorBackground: "#142534",
+          colorText: "#f0ece9",
+          colorDanger: "#e57373",
+          colorTextPlaceholder: "rgba(240, 236, 233, 0.45)",
+          borderRadius: "8px",
+          spacingUnit: "4px"
+        },
+        rules
+      };
+    }
+
+    return {
+      theme: "stripe",
+      variables: {
+        fontFamily:
+          '"Montserrat Pilar", Montserrat, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        colorPrimary: "#142534",
+        colorBackground: "#ffffff",
+        colorText: "#142534",
+        colorDanger: "#c62828",
+        colorTextPlaceholder: "#8898aa",
+        borderRadius: "8px",
+        spacingUnit: "4px"
+      },
+      rules
+    };
+  }, [isDark]);
 
   const isSpanish = locale === "es";
   const selectedAmount = customAmount ? Number(customAmount) : amount;
@@ -121,6 +258,7 @@ export function GiveOnlineSection({
       const payload = (await response.json()) as {
         clientSecret?: string;
         publishableKey?: string;
+        returnUrl?: string;
         error?: string;
         message?: string;
       };
@@ -131,6 +269,10 @@ export function GiveOnlineSection({
 
       if (payload.publishableKey && !publishableKey) {
         setPublishableKey(payload.publishableKey);
+      }
+
+      if (payload.returnUrl) {
+        setCheckoutReturnUrl(payload.returnUrl);
       }
 
       setCheckoutClientSecret(payload.clientSecret);
@@ -330,24 +472,43 @@ export function GiveOnlineSection({
                 </div>
               </div>
 
-              <div className="give-online-embedded-checkout">
+              <div className="give-online-elements-container">
                 {stripePromise && checkoutClientSecret ? (
-                  <EmbeddedCheckoutProvider
+                  <CheckoutElementsProvider
                     key={checkoutClientSecret}
                     stripe={stripePromise}
                     options={{
                       clientSecret: checkoutClientSecret,
-                      onComplete: () => {
-                        setStep("success");
+                      elementsOptions: {
+                        appearance: stripeAppearance,
+                        fonts: [
+                          {
+                            cssSrc:
+                              "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
+                          }
+                        ]
                       }
                     }}
                   >
-                    <EmbeddedCheckout />
-                  </EmbeddedCheckoutProvider>
+                    <CheckoutElementsForm
+                      formattedAmount={formattedAmount}
+                      frequencyLabel={frequencyLabel}
+                      isSpanish={isSpanish}
+                      onSuccess={() => {
+                        setStep("success");
+                        setError("");
+                      }}
+                      returnUrl={checkoutReturnUrl}
+                    />
+                  </CheckoutElementsProvider>
                 ) : (
                   <div className="give-online-loading">
                     <span className="spinner" aria-hidden="true" />
-                    <p>{isSpanish ? "Cargando formulario de pago seguro…" : "Loading secure payment form…"}</p>
+                    <p>
+                      {isSpanish
+                        ? "Cargando pasarela de pago seguro…"
+                        : "Loading secure payment form…"}
+                    </p>
                   </div>
                 )}
               </div>
@@ -390,3 +551,124 @@ export function GiveOnlineSection({
     </article>
   );
 }
+
+function CheckoutElementsForm({
+  formattedAmount,
+  frequencyLabel,
+  isSpanish,
+  onSuccess,
+  returnUrl
+}: {
+  formattedAmount: string;
+  frequencyLabel: string;
+  isSpanish: boolean;
+  onSuccess: () => void;
+  returnUrl: string;
+}) {
+  const checkoutState = useCheckoutElements();
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  if (checkoutState.type === "loading") {
+    return (
+      <div className="give-online-loading">
+        <span className="spinner" aria-hidden="true" />
+        <p>
+          {isSpanish
+            ? "Cargando formulario seguro…"
+            : "Loading secure form…"}
+        </p>
+      </div>
+    );
+  }
+
+  if (checkoutState.type === "error") {
+    return (
+      <div className="give-online-error">
+        {checkoutState.error.message ||
+          (isSpanish
+            ? "Ocurrió un error al cargar la pasarela de pago."
+            : "An error occurred while loading payment gateway.")}
+      </div>
+    );
+  }
+
+  const { checkout } = checkoutState;
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (submitting) return;
+
+    setSubmitting(true);
+    setErrorMessage("");
+
+    try {
+      const result = await checkout.confirm({
+        returnUrl: returnUrl || window.location.href,
+        redirect: "if_required"
+      });
+
+      if (result.type === "error") {
+        setErrorMessage(
+          result.error.message ||
+            (isSpanish
+              ? "No se pudo procesar el pago. Por favor verifica los datos de tu tarjeta."
+              : "Could not process payment. Please verify your card details.")
+        );
+        setSubmitting(false);
+      } else {
+        onSuccess();
+      }
+    } catch (err) {
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : isSpanish
+            ? "Ocurrió un error inesperado al procesar el pago."
+            : "An unexpected error occurred while processing payment."
+      );
+      setSubmitting(false);
+    }
+  };
+
+  const displayTotal = checkout.total?.total?.amount || formattedAmount;
+
+  return (
+    <form className="give-online-elements-form" onSubmit={handleSubmit}>
+      <PaymentElement
+        options={{
+          layout: "tabs"
+        }}
+      />
+
+      {errorMessage && (
+        <p aria-live="polite" className="give-online-error">
+          {errorMessage}
+        </p>
+      )}
+
+      <div className="give-online-actions">
+        <p className="give-online-summary">
+          <span>{isSpanish ? "Total a aportar" : "Total gift"}</span>
+          <strong>
+            {displayTotal} · {frequencyLabel}
+          </strong>
+        </p>
+        <button
+          className="button give-online-submit"
+          disabled={submitting}
+          type="submit"
+        >
+          {submitting
+            ? isSpanish
+              ? "Procesando pago…"
+              : "Processing payment…"
+            : isSpanish
+              ? `Aportar ${formattedAmount}`
+              : `Give ${formattedAmount}`}
+        </button>
+      </div>
+    </form>
+  );
+}
+

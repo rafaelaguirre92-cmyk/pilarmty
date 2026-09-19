@@ -8271,6 +8271,24 @@ body.resource-filters-open {
   font-weight: 700;
 }
 
+.give-online-elements-container {
+  min-height: 260px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.give-online-elements-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.give-online-elements-form .give-online-actions {
+  padding-top: 14px;
+}
+
 .give-online-embedded-checkout {
   min-height: 360px;
   margin: 0;
