@@ -763,7 +763,9 @@ select:focus,
 html[data-theme="dark"] .template-default,
 html[data-theme="dark"] .app-main,
 html[data-theme="dark"] .collection-list {
-  background: linear-gradient(135deg, rgba(29, 67, 75, 0.4) 0%, rgba(20, 37, 52, 0.95) 100%) !important;
+  background:
+    radial-gradient(ellipse at 85% 15%, rgba(139, 168, 146, 0.15), transparent 55%),
+    linear-gradient(140deg, #0b171c 0%, #10242e 35%, #143534 70%, #1a423d 100%) !important;
 }
 
 /* Tabs in list-header (like "Todo Enseñanzas" / "Archivo") */
@@ -1553,90 +1555,147 @@ html[data-theme="dark"] .btn--style-primary {
   border-radius: var(--style-radius-s);
 }
 
-.template-minimal {
+.template-minimal,
+html[data-theme="dark"] .template-minimal,
+html[data-theme="light"] .template-minimal,
+body:has(.template-minimal),
+body:has(.login) {
   background:
-    radial-gradient(circle at 18% 10%, rgba(174, 181, 146, 0.34), transparent 38%),
-    linear-gradient(155deg, var(--pilar-mist) 0%, var(--pilar-cream) 72%);
+    radial-gradient(ellipse at 85% 15%, rgba(139, 168, 146, 0.22), transparent 55%),
+    radial-gradient(ellipse at 15% 85%, rgba(15, 32, 38, 0.85), transparent 55%),
+    linear-gradient(140deg, #0b171c 0%, #10242e 35%, #143534 70%, #1a423d 100%) !important;
+  min-height: 100vh;
 }
 
-html[data-theme="dark"] .template-minimal {
-  background:
-    radial-gradient(circle at 18% 8%, rgba(71, 111, 96, 0.48), transparent 38%),
-    linear-gradient(155deg, var(--pilar-teal) 0%, var(--pilar-navy) 72%);
-}
-
-.template-minimal--width-normal .template-minimal__wrap {
-  max-width: 520px;
-  padding: 44px;
-  border: 1px solid rgba(20, 37, 52, 0.2);
-  border-radius: var(--style-radius-l);
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 24px 72px rgba(20, 37, 52, 0.14);
-}
-
-html[data-theme="dark"] .template-minimal--width-normal .template-minimal__wrap {
-  border-color: rgba(240, 236, 233, 0.24);
-  background: rgba(20, 37, 52, 0.94);
-  box-shadow: 0 24px 72px rgba(8, 19, 28, 0.42);
+.template-minimal--width-normal .template-minimal__wrap,
+html[data-theme="dark"] .template-minimal--width-normal .template-minimal__wrap,
+html[data-theme="light"] .template-minimal--width-normal .template-minimal__wrap {
+  max-width: 460px;
+  padding: 44px 38px;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 20px !important;
+  background: rgba(14, 28, 34, 0.78) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.04) !important;
 }
 
 .login__brand {
-  margin-bottom: 36px;
+  margin-bottom: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
+.template-minimal .field-label,
 .login__form .field-label {
-  color: var(--theme-text);
-  font-weight: 700;
+  color: #f0ece9 !important;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 13.5px;
+  letter-spacing: 0.01em;
 }
 
+.template-minimal input,
 .login__form input {
   min-height: 48px;
-  color: var(--theme-text);
-  background: var(--theme-input-bg);
-  border-color: var(--theme-elevation-250);
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 10px !important;
+  font-family: var(--font-body);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
+.template-minimal input:focus,
+.login__form input:focus {
+  border-color: #8ba892 !important;
+  box-shadow: 0 0 0 2px rgba(139, 168, 146, 0.25) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.template-minimal a,
 .login__form a {
-  color: var(--theme-elevation-700);
-  font-weight: 700;
+  color: #aeb592 !important;
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 150ms ease;
 }
 
-html[data-theme="dark"] .login__form a {
-  color: var(--pilar-sage);
+.template-minimal a:hover,
+.login__form a:hover {
+  color: #cdd4b8 !important;
+  text-decoration: underline;
 }
 
+.template-minimal .btn--style-primary,
 .login__form .btn--style-primary {
   min-height: 48px;
+  border-radius: 999px !important;
+  background: #1d434b !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+  transition: all 150ms ease;
+}
+
+.template-minimal .btn--style-primary:hover,
+.login__form .btn--style-primary:hover {
+  background: #255862 !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35) !important;
 }
 
 .pilar-admin-logo {
   display: flex;
   justify-content: center;
+  align-items: center;
   width: 100%;
 }
 
 .pilar-admin-logo__image {
-  width: 160px;
+  width: auto;
+  max-height: 52px;
+  max-width: 220px;
   height: auto;
+  object-fit: contain;
 }
 
 .pilar-admin-logo__image--dark {
   display: none;
 }
 
+.template-minimal .pilar-admin-logo__image--light,
+.login .pilar-admin-logo__image--light {
+  display: none !important;
+}
+
+.template-minimal .pilar-admin-logo__image--dark,
+.login .pilar-admin-logo__image--dark {
+  display: block !important;
+}
+
 html[data-theme="dark"] .pilar-admin-logo__image--light {
-  display: none;
+  display: none !important;
 }
 
 html[data-theme="dark"] .pilar-admin-logo__image--dark {
-  display: block;
+  display: block !important;
 }
 
 .pilar-admin-icon {
   position: relative;
-  display: block;
-  width: 34px;
-  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   flex: 0 0 auto;
 }
 
@@ -1652,11 +1711,11 @@ html[data-theme="dark"] .pilar-admin-logo__image--dark {
 }
 
 html[data-theme="dark"] .pilar-admin-icon__image--light {
-  display: none;
+  display: none !important;
 }
 
 html[data-theme="dark"] .pilar-admin-icon__image--dark {
-  display: block;
+  display: block !important;
 }
 
 /* The sidebar already carries the brand; keep the compact app header clear. */
