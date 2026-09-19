@@ -1,6 +1,5 @@
 import config from "@payload-config";
 import "@payloadcms/next/css";
-import "./custom.css";
 import {
   handleServerFunctions,
   metadata as payloadMetadata,

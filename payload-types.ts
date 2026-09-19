@@ -67,13 +67,13 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    teachings: Teaching;
-    resources: Resource;
+    users: User;
     media: Media;
     authors: Author;
     topics: Topic;
     series: Series;
-    users: User;
+    teachings: Teaching;
+    resources: Resource;
     redirects: Redirect;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
@@ -83,13 +83,13 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
-    teachings: TeachingsSelect<false> | TeachingsSelect<true>;
-    resources: ResourcesSelect<false> | ResourcesSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     authors: AuthorsSelect<false> | AuthorsSelect<true>;
     topics: TopicsSelect<false> | TopicsSelect<true>;
     series: SeriesSelect<false> | SeriesSelect<true>;
-    users: UsersSelect<false> | UsersSelect<true>;
+    teachings: TeachingsSelect<false> | TeachingsSelect<true>;
+    resources: ResourcesSelect<false> | ResourcesSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
@@ -136,6 +136,177 @@ export interface UserAuthOperations {
     email: string;
     password: string;
   };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users".
+ */
+export interface User {
+  id: number;
+  name: string;
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  alt: string;
+  caption?: string | null;
+  migrationKey?: string | null;
+  prefix?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  deletedAt?: string | null;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+  sizes?: {
+    thumbnail?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    card?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+    social?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+    };
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "authors".
+ */
+export interface Author {
+  id: number;
+  name: string;
+  /**
+   * Se genera automáticamente. Cambiarlo después de publicar creará una redirección permanente.
+   */
+  slug: string;
+  bio?: string | null;
+  /**
+   * Ayuda a identificar al autor en los datos estructurados.
+   */
+  profileUrl?: string | null;
+  image?: (number | null) | Media;
+  migrationKey?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  deletedAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "topics".
+ */
+export interface Topic {
+  id: number;
+  name: string;
+  /**
+   * Se genera automáticamente. Cambiarlo después de publicar creará una redirección permanente.
+   */
+  slug: string;
+  publishPage?: boolean | null;
+  unpublishPage?: boolean | null;
+  migrationKey?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  deletedAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "series".
+ */
+export interface Series {
+  id: number;
+  title: string;
+  /**
+   * Se genera automáticamente. Cambiarlo después de publicar creará una redirección permanente.
+   */
+  slug: string;
+  kind: 'series' | 'event';
+  description?: string | null;
+  /**
+   * Formato recomendado: 1600 × 900 px. Es la portada principal y conserva las imágenes existentes.
+   */
+  image?: (number | null) | Media;
+  /**
+   * Formato recomendado: 1200 × 1200 px.
+   */
+  imageSquare?: (number | null) | Media;
+  /**
+   * Formato recomendado: 1080 × 1920 px.
+   */
+  imageVertical?: (number | null) | Media;
+  /**
+   * Completa solo lo que necesite diferir del contenido principal. El sitio genera canonical, Open Graph y datos estructurados automáticamente.
+   */
+  seo?: {
+    /**
+     * Opcional. Si se deja vacío se usa el título principal.
+     */
+    title?: string | null;
+    /**
+     * Describe con claridad el contenido. Si se deja vacío se usa el resumen.
+     */
+    description?: string | null;
+    canonical?: string | null;
+    /**
+     * Úsalo solo para contenido privado, duplicado o temporal.
+     */
+    noIndex?: boolean | null;
+    socialImage?: (number | null) | Media;
+  };
+  /**
+   * Al guardar se creará una redirección permanente desde la URL anterior.
+   */
+  confirmSlugChange?: boolean | null;
+  translationAutoGenerated?: boolean | null;
+  migrationKey?: string | null;
+  sourceUpdatedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  deletedAt?: string | null;
+  _status?: ('draft' | 'published') | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -236,157 +407,6 @@ export interface Teaching {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
- */
-export interface Media {
-  id: number;
-  alt: string;
-  caption?: string | null;
-  migrationKey?: string | null;
-  prefix?: string | null;
-  updatedAt: string;
-  createdAt: string;
-  deletedAt?: string | null;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  focalX?: number | null;
-  focalY?: number | null;
-  sizes?: {
-    thumbnail?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    card?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-    social?: {
-      url?: string | null;
-      width?: number | null;
-      height?: number | null;
-      mimeType?: string | null;
-      filesize?: number | null;
-      filename?: string | null;
-    };
-  };
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "series".
- */
-export interface Series {
-  id: number;
-  title: string;
-  /**
-   * Se genera automáticamente. Cambiarlo después de publicar creará una redirección permanente.
-   */
-  slug: string;
-  kind: 'series' | 'event';
-  description?: string | null;
-  /**
-   * Formato recomendado: 1600 × 900 px. Es la portada principal y conserva las imágenes existentes.
-   */
-  image?: (number | null) | Media;
-  /**
-   * Formato recomendado: 1200 × 1200 px.
-   */
-  imageSquare?: (number | null) | Media;
-  /**
-   * Formato recomendado: 1080 × 1920 px.
-   */
-  imageVertical?: (number | null) | Media;
-  /**
-   * Completa solo lo que necesite diferir del contenido principal. El sitio genera canonical, Open Graph y datos estructurados automáticamente.
-   */
-  seo?: {
-    /**
-     * Opcional. Si se deja vacío se usa el título principal.
-     */
-    title?: string | null;
-    /**
-     * Describe con claridad el contenido. Si se deja vacío se usa el resumen.
-     */
-    description?: string | null;
-    canonical?: string | null;
-    /**
-     * Úsalo solo para contenido privado, duplicado o temporal.
-     */
-    noIndex?: boolean | null;
-    socialImage?: (number | null) | Media;
-  };
-  /**
-   * Al guardar se creará una redirección permanente desde la URL anterior.
-   */
-  confirmSlugChange?: boolean | null;
-  translationAutoGenerated?: boolean | null;
-  migrationKey?: string | null;
-  sourceUpdatedAt?: string | null;
-  updatedAt: string;
-  createdAt: string;
-  deletedAt?: string | null;
-  _status?: ('draft' | 'published') | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "authors".
- */
-export interface Author {
-  id: number;
-  name: string;
-  /**
-   * Se genera automáticamente. Cambiarlo después de publicar creará una redirección permanente.
-   */
-  slug: string;
-  bio?: string | null;
-  /**
-   * Ayuda a identificar al autor en los datos estructurados.
-   */
-  profileUrl?: string | null;
-  image?: (number | null) | Media;
-  migrationKey?: string | null;
-  updatedAt: string;
-  createdAt: string;
-  deletedAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "topics".
- */
-export interface Topic {
-  id: number;
-  name: string;
-  /**
-   * Se genera automáticamente. Cambiarlo después de publicar creará una redirección permanente.
-   */
-  slug: string;
-  /**
-   * Publica la página cuando tenga contenido, aunque no alcance el mínimo automático de 3 publicaciones.
-   */
-  publishPage?: boolean | null;
-  /**
-   * Oculta la página del tema. Tiene prioridad sobre la publicación manual y automática.
-   */
-  unpublishPage?: boolean | null;
-  migrationKey?: string | null;
-  updatedAt: string;
-  createdAt: string;
-  deletedAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "resources".
  */
 export interface Resource {
@@ -464,32 +484,6 @@ export interface Resource {
   createdAt: string;
   deletedAt?: string | null;
   _status?: ('draft' | 'published') | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
- */
-export interface User {
-  id: number;
-  name: string;
-  updatedAt: string;
-  createdAt: string;
-  email: string;
-  resetPasswordToken?: string | null;
-  resetPasswordExpiration?: string | null;
-  salt?: string | null;
-  hash?: string | null;
-  loginAttempts?: number | null;
-  lockUntil?: string | null;
-  sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
-  password?: string | null;
-  collection: 'users';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -620,12 +614,8 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
-        relationTo: 'teachings';
-        value: number | Teaching;
-      } | null)
-    | ({
-        relationTo: 'resources';
-        value: number | Resource;
+        relationTo: 'users';
+        value: number | User;
       } | null)
     | ({
         relationTo: 'media';
@@ -644,8 +634,12 @@ export interface PayloadLockedDocument {
         value: number | Series;
       } | null)
     | ({
-        relationTo: 'users';
-        value: number | User;
+        relationTo: 'teachings';
+        value: number | Teaching;
+      } | null)
+    | ({
+        relationTo: 'resources';
+        value: number | Resource;
       } | null)
     | ({
         relationTo: 'redirects';
@@ -695,94 +689,26 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "teachings_select".
+ * via the `definition` "users_select".
  */
-export interface TeachingsSelect<T extends boolean = true> {
-  title?: T;
-  body?: T;
-  slug?: T;
-  seo?:
+export interface UsersSelect<T extends boolean = true> {
+  name?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
     | T
     | {
-        title?: T;
-        description?: T;
-        canonical?: T;
-        noIndex?: T;
-        socialImage?: T;
-      };
-  confirmSlugChange?: T;
-  legacy?: T;
-  notionPageId?: T;
-  notionUrl?: T;
-  syncStatus?: T;
-  lastSyncedAt?: T;
-  lastSyncSource?: T;
-  syncError?: T;
-  translationAutoGenerated?: T;
-  migrationKey?: T;
-  sourceUpdatedAt?: T;
-  teachingDate?: T;
-  series?: T;
-  episode?: T;
-  author?: T;
-  durationMinutes?: T;
-  keyVerse?: T;
-  topics?: T;
-  excerpt?: T;
-  youtubeUrl?: T;
-  spotifyUrl?: T;
-  image?: T;
-  mediaLinks?:
-    | T
-    | {
-        label?: T;
-        url?: T;
         id?: T;
+        createdAt?: T;
+        expiresAt?: T;
       };
-  updatedAt?: T;
-  createdAt?: T;
-  deletedAt?: T;
-  _status?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "resources_select".
- */
-export interface ResourcesSelect<T extends boolean = true> {
-  title?: T;
-  excerpt?: T;
-  body?: T;
-  contentDate?: T;
-  kind?: T;
-  author?: T;
-  topics?: T;
-  relatedTeachings?: T;
-  image?: T;
-  featured?: T;
-  slug?: T;
-  seo?:
-    | T
-    | {
-        title?: T;
-        description?: T;
-        canonical?: T;
-        noIndex?: T;
-        socialImage?: T;
-      };
-  confirmSlugChange?: T;
-  notionPageId?: T;
-  notionUrl?: T;
-  syncStatus?: T;
-  lastSyncedAt?: T;
-  lastSyncSource?: T;
-  syncError?: T;
-  translationAutoGenerated?: T;
-  migrationKey?: T;
-  sourceUpdatedAt?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  deletedAt?: T;
-  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -901,26 +827,94 @@ export interface SeriesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users_select".
+ * via the `definition` "teachings_select".
  */
-export interface UsersSelect<T extends boolean = true> {
-  name?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  email?: T;
-  resetPasswordToken?: T;
-  resetPasswordExpiration?: T;
-  salt?: T;
-  hash?: T;
-  loginAttempts?: T;
-  lockUntil?: T;
-  sessions?:
+export interface TeachingsSelect<T extends boolean = true> {
+  title?: T;
+  body?: T;
+  slug?: T;
+  seo?:
     | T
     | {
-        id?: T;
-        createdAt?: T;
-        expiresAt?: T;
+        title?: T;
+        description?: T;
+        canonical?: T;
+        noIndex?: T;
+        socialImage?: T;
       };
+  confirmSlugChange?: T;
+  legacy?: T;
+  notionPageId?: T;
+  notionUrl?: T;
+  syncStatus?: T;
+  lastSyncedAt?: T;
+  lastSyncSource?: T;
+  syncError?: T;
+  translationAutoGenerated?: T;
+  migrationKey?: T;
+  sourceUpdatedAt?: T;
+  teachingDate?: T;
+  series?: T;
+  episode?: T;
+  author?: T;
+  durationMinutes?: T;
+  keyVerse?: T;
+  topics?: T;
+  excerpt?: T;
+  youtubeUrl?: T;
+  spotifyUrl?: T;
+  image?: T;
+  mediaLinks?:
+    | T
+    | {
+        label?: T;
+        url?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  deletedAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "resources_select".
+ */
+export interface ResourcesSelect<T extends boolean = true> {
+  title?: T;
+  excerpt?: T;
+  body?: T;
+  contentDate?: T;
+  kind?: T;
+  author?: T;
+  topics?: T;
+  relatedTeachings?: T;
+  image?: T;
+  featured?: T;
+  slug?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        canonical?: T;
+        noIndex?: T;
+        socialImage?: T;
+      };
+  confirmSlugChange?: T;
+  notionPageId?: T;
+  notionUrl?: T;
+  syncStatus?: T;
+  lastSyncedAt?: T;
+  lastSyncSource?: T;
+  syncError?: T;
+  translationAutoGenerated?: T;
+  migrationKey?: T;
+  sourceUpdatedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  deletedAt?: T;
+  _status?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1024,16 +1018,16 @@ export interface TaskSchedulePublish {
     locale?: string | null;
     doc?:
       | ({
+          relationTo: 'series';
+          value: number | Series;
+        } | null)
+      | ({
           relationTo: 'teachings';
           value: number | Teaching;
         } | null)
       | ({
           relationTo: 'resources';
           value: number | Resource;
-        } | null)
-      | ({
-          relationTo: 'series';
-          value: number | Series;
         } | null);
     global?: string | null;
     user?: (number | null) | User;
