@@ -643,7 +643,7 @@ function CheckoutElementsForm({
 
       <div className="give-online-actions">
         <p className="give-online-summary">
-          <span>{isSpanish ? "Total a aportar" : "Total gift"}</span>
+          <span>{isSpanish ? "Total a dar" : "Total gift"}</span>
           <strong>
             {displayTotal} · {frequencyLabel}
           </strong>
@@ -658,7 +658,7 @@ function CheckoutElementsForm({
               ? "Procesando pago…"
               : "Processing payment…"
             : isSpanish
-              ? `Aportar ${formattedAmount}`
+              ? `Dar ${formattedAmount}`
               : `Give ${formattedAmount}`}
         </button>
       </div>
