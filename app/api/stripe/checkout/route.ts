@@ -62,7 +62,6 @@ export async function POST(request: Request) {
   const params = new URLSearchParams({
     mode: isRecurring ? "subscription" : "payment",
     ui_mode: "elements",
-    redirect_on_completion: "if_required",
     locale: checkout.locale,
     return_url: returnUrl,
     "line_items[0][price_data][currency]": "mxn",
