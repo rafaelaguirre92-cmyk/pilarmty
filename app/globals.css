@@ -8196,7 +8196,7 @@ body.resource-filters-open {
 }
 
 .give-online-dialog .community-inquiry-dialog-inner {
-  padding: clamp(28px, 4.5vw, 40px);
+  padding: clamp(24px, 4.5vw, 36px) clamp(24px, 4.5vw, 36px) 20px;
 }
 
 .give-online-dialog--checkout .community-inquiry-dialog-inner {
@@ -8493,7 +8493,7 @@ body.resource-filters-open {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding-top: 16px;
+  padding-top: 14px;
   border-top: 1px solid var(--line);
 }
 
