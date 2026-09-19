@@ -68,11 +68,11 @@ export function NavHomeButton() {
 
   return (
     <>
-      {/* 1. Clean "Inicio" link at top of sidebar (matches regular nav items) */}
-      <div className="pilar-nav-home-wrapper">
+      {/* 1. Pure native "Inicio" link at top of sidebar */}
+      <div className="pilar-nav-home">
         <Link
           href="/admin"
-          className={`nav__link pilar-nav-home-link ${isHomeActive ? "active is-active" : ""}`}
+          className="nav__link"
           id="nav-home"
         >
           {isHomeActive && <div className="nav__link-indicator" />}
@@ -80,12 +80,12 @@ export function NavHomeButton() {
         </Link>
       </div>
 
-      {/* 2. "Sincronización" link in sidebar under Administración */}
+      {/* 2. Pure native "Sincronización" link in sidebar under Administración */}
       {navSlot &&
         createPortal(
           <Link
             href="/admin/sincronizacion"
-            className={`nav__link pilar-nav-sync-link ${isSyncActive ? "active is-active" : ""}`}
+            className="nav__link"
             id="nav-sincronizacion"
           >
             {isSyncActive && <div className="nav__link-indicator" />}
@@ -94,11 +94,11 @@ export function NavHomeButton() {
           navSlot
         )}
 
-      {/* 3. "Sincronización" card on dashboard next to Administradores */}
+      {/* 3. Pure native "Sincronización" card on dashboard next to Administradores */}
       {cardSlot &&
         createPortal(
           <div
-            className="card card-sync card--has-onclick pilar-card-sync"
+            className="card card-sync card--has-onclick"
             id="card-sincronizacion"
           >
             <h3 className="card__title">Sincronización</h3>

@@ -58,57 +58,14 @@ body:has(.template-default),
   transform: scale(1.08);
 }
 
-/* 5. Navigation Items in Sidebar & Dashboard */
-.pilar-nav-home-wrapper {
-  padding: 8px 14px 10px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  margin-bottom: 10px;
+/* 5. Navigation Items in Sidebar */
+.pilar-nav-home {
+  width: 100%;
+  margin-bottom: 12px;
 }
 
-.pilar-nav-home-link,
-.pilar-nav-sync-link {
-  display: flex !important;
-  align-items: center !important;
-  position: relative !important;
-  text-decoration: none !important;
-  padding: 7px 12px !important;
-  border-radius: 6px !important;
-  color: rgba(255, 255, 255, 0.72) !important;
-  font-size: 0.875rem !important;
-  font-weight: 400 !important;
-  line-height: 1.4 !important;
-  transition: color 0.15s ease, background-color 0.15s ease !important;
-}
-
-.pilar-nav-home-link:hover,
-.pilar-nav-sync-link:hover {
-  color: #ffffff !important;
-  background-color: rgba(255, 255, 255, 0.05) !important;
-}
-
-.pilar-nav-home-link.is-active,
-.pilar-nav-sync-link.is-active {
-  color: #ffffff !important;
-  font-weight: 500 !important;
-  background-color: rgba(139, 168, 146, 0.12) !important;
-}
-
-.pilar-nav-home-link.is-active::before,
-.pilar-nav-sync-link.is-active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 6px;
-  bottom: 6px;
-  width: 3px;
-  border-radius: 0 3px 3px 0;
-  background-color: #8ba892;
-}
-
-/* Dashboard Card for Sincronización */
-.pilar-card-sync {
-  cursor: pointer;
-  position: relative;
+.nav__link-indicator {
+  background: #8ba892 !important;
 }
 
 /* 6. Dashboard Top Banner (beforeDashboard) */
