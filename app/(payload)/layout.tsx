@@ -1,6 +1,7 @@
 import config from "@payload-config";
 import "@payloadcms/next/css";
 import "./login.css";
+import "./admin.css";
 import {
   handleServerFunctions,
   metadata as payloadMetadata,

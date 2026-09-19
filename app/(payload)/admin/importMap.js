@@ -22,9 +22,13 @@ import { RelationshipFeatureClient as RelationshipFeatureClient_e70f5e05f09f93e0
 import { BlockquoteFeatureClient as BlockquoteFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { HorizontalRuleFeatureClient as HorizontalRuleFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { InlineToolbarFeatureClient as InlineToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
+import { AdminHomeIcon as AdminHomeIcon_016bda706e0a98481b19f188a74fc9a9 } from '../../../cms/components/AdminHomeIcon'
 import { AdminLogo as AdminLogo_8c188864867e005dfe39dcba7af1b802 } from '../../../cms/components/AdminBrand'
 import { NotionSyncPanel as NotionSyncPanel_d57a8e082474ca65b1b9fcfde1075523 } from '../../../cms/components/NotionSyncPanel'
+import { DashboardBanner as DashboardBanner_2be8caf52990a28c6c7c5934494ac237 } from '../../../cms/components/DashboardBanner'
+import { NavHomeButton as NavHomeButton_647ab96facdde61ca20789b0dc43fed1 } from '../../../cms/components/NavHomeButton'
 import { VercelBlobClientUploadHandler as VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e } from '@payloadcms/storage-vercel-blob/client'
+import { SyncDashboardView as SyncDashboardView_8c9602596f14c49faaee268c4af59d88 } from '../../../cms/components/SyncDashboardView'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 /** @type import('payload').ImportMap */
@@ -53,8 +57,12 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#BlockquoteFeatureClient": BlockquoteFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#HorizontalRuleFeatureClient": HorizontalRuleFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#InlineToolbarFeatureClient": InlineToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  "./cms/components/AdminHomeIcon#AdminHomeIcon": AdminHomeIcon_016bda706e0a98481b19f188a74fc9a9,
   "./cms/components/AdminBrand#AdminLogo": AdminLogo_8c188864867e005dfe39dcba7af1b802,
   "./cms/components/NotionSyncPanel#NotionSyncPanel": NotionSyncPanel_d57a8e082474ca65b1b9fcfde1075523,
+  "./cms/components/DashboardBanner#DashboardBanner": DashboardBanner_2be8caf52990a28c6c7c5934494ac237,
+  "./cms/components/NavHomeButton#NavHomeButton": NavHomeButton_647ab96facdde61ca20789b0dc43fed1,
   "@payloadcms/storage-vercel-blob/client#VercelBlobClientUploadHandler": VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e,
+  "./cms/components/SyncDashboardView#SyncDashboardView": SyncDashboardView_8c9602596f14c49faaee268c4af59d88,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

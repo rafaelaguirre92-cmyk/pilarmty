@@ -45,13 +45,38 @@ export default buildConfig({
     timezones: { defaultTimezone: "America/Monterrey" },
     components: {
       beforeDashboard: [{
+        path: "./cms/components/DashboardBanner",
+        exportName: "DashboardBanner"
+      }],
+      afterDashboard: [{
         path: "./cms/components/NotionSyncPanel",
         exportName: "NotionSyncPanel"
+      }],
+      beforeNavLinks: [{
+        path: "./cms/components/NavHomeButton",
+        exportName: "NavHomeButton"
       }],
       graphics: {
         Logo: {
           path: "./cms/components/AdminBrand",
           exportName: "AdminLogo"
+        },
+        Icon: {
+          path: "./cms/components/AdminHomeIcon",
+          exportName: "AdminHomeIcon"
+        }
+      },
+      views: {
+        SyncDashboard: {
+          Component: {
+            path: "./cms/components/SyncDashboardView",
+            exportName: "SyncDashboardView"
+          },
+          path: "/sincronizacion",
+          meta: {
+            title: "Sincronización — Iglesia Pilar",
+            description: "Historial y control de sincronización con Notion"
+          }
         }
       }
     },
