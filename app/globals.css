@@ -8289,6 +8289,17 @@ body.resource-filters-open {
   padding-top: 12px;
 }
 
+.give-online-mandate {
+  margin: -2px 0 2px;
+  color: var(--text-soft);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+:root[data-theme="dark"] .give-online-mandate {
+  color: color-mix(in srgb, var(--cream) 70%, transparent);
+}
+
 .give-online-embedded-checkout {
   min-height: 360px;
   margin: 0;

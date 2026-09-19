@@ -486,6 +486,7 @@ export function GiveOnlineSection({
                   >
                     <CheckoutElementsForm
                       formattedAmount={formattedAmount}
+                      frequency={frequency}
                       frequencyLabel={frequencyLabel}
                       isSpanish={isSpanish}
                       onSuccess={() => {
@@ -548,12 +549,14 @@ export function GiveOnlineSection({
 
 function CheckoutElementsForm({
   formattedAmount,
+  frequency,
   frequencyLabel,
   isSpanish,
   onSuccess,
   returnUrl
 }: {
   formattedAmount: string;
+  frequency: "once" | "monthly";
   frequencyLabel: string;
   isSpanish: boolean;
   onSuccess: () => void;
@@ -631,9 +634,20 @@ function CheckoutElementsForm({
     <form className="give-online-elements-form" onSubmit={handleSubmit}>
       <PaymentElement
         options={{
-          layout: "tabs"
+          layout: "tabs",
+          terms: {
+            card: "never"
+          }
         }}
       />
+
+      {frequency === "monthly" && (
+        <p className="give-online-mandate">
+          {isSpanish
+            ? "Al dar mensualmente, autorizas a Iglesia Pilar el cobro según las condiciones hasta que canceles."
+            : "By giving monthly, you authorize Iglesia Pilar to charge according to the terms until you cancel."}
+        </p>
+      )}
 
       {errorMessage && (
         <p aria-live="polite" className="give-online-error">
