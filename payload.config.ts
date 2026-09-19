@@ -47,7 +47,13 @@ export default buildConfig({
       beforeDashboard: [{
         path: "./cms/components/NotionSyncPanel",
         exportName: "NotionSyncPanel"
-      }]
+      }],
+      graphics: {
+        Logo: {
+          path: "./cms/components/AdminBrand",
+          exportName: "AdminLogo"
+        }
+      }
     },
     meta: {
       titleSuffix: "— Iglesia Pilar",

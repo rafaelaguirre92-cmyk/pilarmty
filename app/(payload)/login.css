@@ -1,0 +1,133 @@
+/* ==========================================================================
+   Iglesia Pilar - Admin Login Page Styling
+   Strictly scoped to the login view (.template-minimal and .login).
+   Leaves the internal authenticated admin panel 100% native/untouched.
+   ========================================================================== */
+
+/* 1. Dark blue to green gradient background for the login page */
+html:has(.template-minimal),
+body:has(.template-minimal),
+.template-minimal {
+  background:
+    radial-gradient(ellipse at 85% 15%, rgba(139, 168, 146, 0.22), transparent 55%),
+    radial-gradient(ellipse at 15% 85%, rgba(15, 32, 38, 0.85), transparent 55%),
+    linear-gradient(140deg, #0b171c 0%, #10242e 35%, #143534 70%, #1a423d 100%) !important;
+  min-height: 100vh;
+}
+
+/* 2. Form card container on the login page */
+.template-minimal--width-normal .template-minimal__wrap {
+  max-width: 440px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 40px 36px;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 18px !important;
+  background: rgba(14, 28, 34, 0.72) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* 3. Logo container and logo display */
+.template-minimal .login__brand,
+.login .login__brand {
+  margin-bottom: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.template-minimal .pilar-admin-logo,
+.login .pilar-admin-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.template-minimal .pilar-admin-logo__image,
+.login .pilar-admin-logo__image {
+  width: auto;
+  max-height: 48px;
+  max-width: 220px;
+  height: auto;
+  object-fit: contain;
+}
+
+/* Force the white logo on the dark gradient login background */
+.template-minimal .pilar-admin-logo__image--light,
+.login .pilar-admin-logo__image--light {
+  display: none !important;
+}
+
+.template-minimal .pilar-admin-logo__image--dark,
+.login .pilar-admin-logo__image--dark {
+  display: block !important;
+}
+
+/* 4. Login form typography & inputs */
+.template-minimal .field-label,
+.login__form .field-label {
+  color: #f0ece9 !important;
+  font-family: var(--font-body, Montserrat, sans-serif);
+  font-weight: 600;
+  font-size: 13.5px;
+  margin-bottom: 6px;
+}
+
+.template-minimal input,
+.login__form input {
+  min-height: 46px;
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 8px !important;
+  font-family: var(--font-body, Montserrat, sans-serif);
+  padding: 0 14px;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.template-minimal input:focus,
+.login__form input:focus {
+  border-color: #8ba892 !important;
+  box-shadow: 0 0 0 2px rgba(139, 168, 146, 0.3) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  outline: none !important;
+}
+
+.template-minimal a,
+.login__form a {
+  color: #aeb592 !important;
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+.template-minimal a:hover,
+.login__form a:hover {
+  color: #d8decd !important;
+  text-decoration: underline;
+}
+
+.template-minimal .btn--style-primary,
+.login__form .btn--style-primary {
+  min-height: 46px;
+  border-radius: 999px !important;
+  background: #1d434b !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  font-family: var(--font-body, Montserrat, sans-serif);
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+  transition: all 150ms ease;
+}
+
+.template-minimal .btn--style-primary:hover,
+.login__form .btn--style-primary:hover {
+  background: #255862 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35) !important;
+}
