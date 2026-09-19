@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -8,54 +10,106 @@ export function NavHomeButton() {
   const isHomeActive = pathname === "/admin" || pathname === "/admin/";
   const isSyncActive = Boolean(pathname?.startsWith("/admin/sincronizacion"));
 
-  return (
-    <div className="pilar-nav-section" aria-label="Navegación principal">
-      <Link
-        href="/admin"
-        className={`pilar-nav-item ${isHomeActive ? "is-active" : ""}`}
-        title="Ir al inicio del panel"
-      >
-        <span className="pilar-nav-item__icon" aria-hidden="true">
-          <svg
-            width="17"
-            height="17"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            <polyline points="9 22 9 12 15 12 15 22" />
-          </svg>
-        </span>
-        <span className="pilar-nav-item__label">Inicio</span>
-        {isHomeActive && <span className="pilar-nav-item__indicator" />}
-      </Link>
+  const [navSlot, setNavSlot] = useState<HTMLElement | null>(null);
+  const [cardSlot, setCardSlot] = useState<HTMLElement | null>(null);
 
-      <Link
-        href="/admin/sincronizacion"
-        className={`pilar-nav-item ${isSyncActive ? "is-active" : ""}`}
-        title="Tablero de sincronización con Notion"
-      >
-        <span className="pilar-nav-item__icon" aria-hidden="true">
-          <svg
-            width="17"
-            height="17"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+  useEffect(() => {
+    function findAndAttachSlots() {
+      // 1. Sidebar link under "Administradores" (#nav-users)
+      const navUsers = document.getElementById("nav-users");
+      if (navUsers && navUsers.parentElement) {
+        let slot = document.getElementById("pilar-nav-sync-slot");
+        if (!slot) {
+          slot = document.createElement("div");
+          slot.id = "pilar-nav-sync-slot";
+          slot.style.display = "contents";
+          navUsers.parentElement.insertBefore(slot, navUsers.nextSibling);
+        }
+        setNavSlot(slot);
+      } else {
+        setNavSlot(null);
+      }
+
+      // 2. Dashboard card next to "Administradores" (#card-users)
+      const cardUsers = document.getElementById("card-users");
+      if (cardUsers) {
+        const userLi = cardUsers.closest("li");
+        if (userLi && userLi.parentElement) {
+          let slot = document.getElementById("pilar-card-sync-slot");
+          if (!slot) {
+            slot = document.createElement("li");
+            slot.id = "pilar-card-sync-slot";
+            userLi.parentElement.insertBefore(slot, userLi.nextSibling);
+          }
+          setCardSlot(slot);
+        } else {
+          setCardSlot(null);
+        }
+      } else {
+        setCardSlot(null);
+      }
+    }
+
+    findAndAttachSlots();
+
+    const observer = new MutationObserver(() => {
+      findAndAttachSlots();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [pathname]);
+
+  return (
+    <>
+      {/* 1. Clean "Inicio" link at top of sidebar (matches regular nav items) */}
+      <div className="pilar-nav-home-wrapper">
+        <Link
+          href="/admin"
+          className={`nav__link pilar-nav-home-link ${isHomeActive ? "active is-active" : ""}`}
+          id="nav-home"
+        >
+          {isHomeActive && <div className="nav__link-indicator" />}
+          <span className="nav__link-label">Inicio</span>
+        </Link>
+      </div>
+
+      {/* 2. "Sincronización" link in sidebar under Administración */}
+      {navSlot &&
+        createPortal(
+          <Link
+            href="/admin/sincronizacion"
+            className={`nav__link pilar-nav-sync-link ${isSyncActive ? "active is-active" : ""}`}
+            id="nav-sincronizacion"
           >
-            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
-          </svg>
-        </span>
-        <span className="pilar-nav-item__label">Sincronización</span>
-        {isSyncActive && <span className="pilar-nav-item__indicator" />}
-      </Link>
-    </div>
+            {isSyncActive && <div className="nav__link-indicator" />}
+            <span className="nav__link-label">Sincronización</span>
+          </Link>,
+          navSlot
+        )}
+
+      {/* 3. "Sincronización" card on dashboard next to Administradores */}
+      {cardSlot &&
+        createPortal(
+          <div
+            className="card card-sync card--has-onclick pilar-card-sync"
+            id="card-sincronizacion"
+          >
+            <h3 className="card__title">Sincronización</h3>
+            <Link
+              href="/admin/sincronizacion"
+              className="btn btn--style-none card__click"
+              aria-label="Ir a Sincronización"
+            />
+          </div>,
+          cardSlot
+        )}
+    </>
   );
 }

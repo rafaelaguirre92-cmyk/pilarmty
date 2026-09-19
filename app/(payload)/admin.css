@@ -38,6 +38,13 @@ body:has(.template-default),
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
+/* 3.1. Hide Language / Localizer Selector completely */
+.localizer,
+.app-header__localizer,
+.app-header__localizer-spacing {
+  display: none !important;
+}
+
 /* 4. House Icon in StepNav Breadcrumb */
 .pilar-admin-home-icon {
   display: inline-block;
@@ -51,61 +58,57 @@ body:has(.template-default),
   transform: scale(1.08);
 }
 
-/* 5. Top Navigation Section in Sidebar (Inicio & Sincronización) */
-.pilar-nav-section {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 10px 14px 14px 14px;
+/* 5. Navigation Items in Sidebar & Dashboard */
+.pilar-nav-home-wrapper {
+  padding: 8px 14px 10px 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
-.pilar-nav-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 0.875rem;
-  font-weight: 500;
-  text-decoration: none;
-  transition: all 0.15s ease;
-  position: relative;
+.pilar-nav-home-link,
+.pilar-nav-sync-link {
+  display: flex !important;
+  align-items: center !important;
+  position: relative !important;
+  text-decoration: none !important;
+  padding: 7px 12px !important;
+  border-radius: 6px !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+  font-size: 0.875rem !important;
+  font-weight: 400 !important;
+  line-height: 1.4 !important;
+  transition: color 0.15s ease, background-color 0.15s ease !important;
 }
 
-.pilar-nav-item:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.06);
+.pilar-nav-home-link:hover,
+.pilar-nav-sync-link:hover {
+  color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
-.pilar-nav-item.is-active {
-  color: #ffffff;
-  background: rgba(139, 168, 146, 0.16);
-  font-weight: 600;
+.pilar-nav-home-link.is-active,
+.pilar-nav-sync-link.is-active {
+  color: #ffffff !important;
+  font-weight: 500 !important;
+  background-color: rgba(139, 168, 146, 0.12) !important;
 }
 
-.pilar-nav-item__icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #8ba892;
-  flex-shrink: 0;
-}
-
-.pilar-nav-item.is-active .pilar-nav-item__icon {
-  color: #a4d2ae;
-}
-
-.pilar-nav-item__indicator {
+.pilar-nav-home-link.is-active::before,
+.pilar-nav-sync-link.is-active::before {
+  content: "";
   position: absolute;
   left: 0;
-  top: 7px;
-  bottom: 7px;
+  top: 6px;
+  bottom: 6px;
   width: 3px;
-  border-radius: 0 4px 4px 0;
-  background: #8ba892;
+  border-radius: 0 3px 3px 0;
+  background-color: #8ba892;
+}
+
+/* Dashboard Card for Sincronización */
+.pilar-card-sync {
+  cursor: pointer;
+  position: relative;
 }
 
 /* 6. Dashboard Top Banner (beforeDashboard) */
@@ -119,25 +122,6 @@ body:has(.template-default),
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-}
-
-.pilar-admin-banner__badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #8ba892;
-  margin-bottom: 8px;
-}
-
-.pilar-admin-banner__badge-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #8ba892;
 }
 
 .pilar-admin-banner__title {

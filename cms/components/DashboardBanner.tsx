@@ -1,10 +1,6 @@
 export function DashboardBanner() {
   return (
     <div className="pilar-admin-banner">
-      <div className="pilar-admin-banner__badge">
-        <span className="pilar-admin-banner__badge-dot" />
-        Panel de Control Editorial
-      </div>
       <h1 className="pilar-admin-banner__title">
         Sistema de Administración de Contenido para Iglesia Pilar
       </h1>

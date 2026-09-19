@@ -11,11 +11,11 @@ export async function SyncDashboardView(props: AdminViewServerProps) {
       i18n={props.i18n}
       locale={props.initPageResult.locale}
       params={props.params}
-      payload={props.payload}
-      permissions={props.permissions}
+      payload={props.initPageResult.req.payload || props.payload}
+      permissions={props.initPageResult.permissions}
       req={props.initPageResult.req}
       searchParams={props.searchParams}
-      user={props.user}
+      user={props.initPageResult.req.user || props.user}
       visibleEntities={props.initPageResult.visibleEntities}
     >
       <SyncDashboardClient initialHistory={initialHistory} />
