@@ -464,12 +464,6 @@ export function GiveOnlineSection({
                   </svg>
                   {isSpanish ? "Cambiar monto" : "Change amount"}
                 </button>
-
-                <div className="give-online-checkout-badge">
-                  <span>{formattedAmount}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>{frequencyLabel}</span>
-                </div>
               </div>
 
               <div className="give-online-elements-container">
