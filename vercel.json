@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "if [ \"$VERCEL_ENV\" = \"production\" ]; then DATABASE_URL=\"$POSTGRES_URL_NON_POOLING\" pnpm payload:migrate; fi && pnpm run build",
   "crons": [
     {
       "path": "/api/notion/sync",
