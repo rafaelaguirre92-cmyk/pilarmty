@@ -54,6 +54,7 @@ export type Teaching = {
   imageAlt?: string;
   durationMinutes?: number;
   youtubeUrl?: string;
+  youtubeDescription?: string;
   spotifyUrl?: string;
   legacy: boolean;
   published?: boolean;

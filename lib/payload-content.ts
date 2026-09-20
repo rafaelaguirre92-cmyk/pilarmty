@@ -105,6 +105,7 @@ function mapTeaching(
     imageAlt: mediaAlt(doc.image) || mediaAlt(series?.image) || series?.title,
     durationMinutes: doc.durationMinutes || undefined,
     youtubeUrl: doc.youtubeUrl || undefined,
+    youtubeDescription: doc.youtubeDescription || undefined,
     spotifyUrl: doc.spotifyUrl || undefined,
     legacy: Boolean(doc.legacy),
     seoTitle: doc.seo?.title || undefined,

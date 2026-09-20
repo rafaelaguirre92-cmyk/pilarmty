@@ -2,6 +2,7 @@ import * as migration_20260831_211704_initial_schema from './20260831_211704_ini
 import * as migration_20260901_141500_spotify_audio from './20260901_141500_spotify_audio';
 import * as migration_20260903_120000_series_image_formats from './20260903_120000_series_image_formats';
 import * as migration_20260920_120000_author_notion_fields from './20260920_120000_author_notion_fields';
+import * as migration_20260920_130000_youtube_description from './20260920_130000_youtube_description';
 
 export const migrations = [
   {
@@ -23,5 +24,10 @@ export const migrations = [
     up: migration_20260920_120000_author_notion_fields.up,
     down: migration_20260920_120000_author_notion_fields.down,
     name: '20260920_120000_author_notion_fields'
+  },
+  {
+    up: migration_20260920_130000_youtube_description.up,
+    down: migration_20260920_130000_youtube_description.down,
+    name: '20260920_130000_youtube_description'
   },
 ];

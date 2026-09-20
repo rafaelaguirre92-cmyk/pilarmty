@@ -186,9 +186,6 @@ export interface Teaching {
    * Al guardar se creará una redirección permanente desde la URL anterior.
    */
   confirmSlugChange?: boolean | null;
-  /**
-   * Marcar si pertenece a la importación legacy inicial.
-   */
   legacy?: boolean | null;
   notionPageId?: string | null;
   notionUrl?: string | null;
@@ -220,6 +217,10 @@ export interface Teaching {
    */
   excerpt?: string | null;
   youtubeUrl?: string | null;
+  /**
+   * Texto editorial que acompaña al video en YouTube.
+   */
+  youtubeDescription?: string | null;
   spotifyUrl?: string | null;
   image?: (number | null) | Media;
   mediaLinks?:
@@ -350,11 +351,20 @@ export interface Author {
    * Se genera automáticamente. Cambiarlo después de publicar creará una redirección permanente.
    */
   slug: string;
+  role?: ('Pastor' | 'Invitado') | null;
+  /**
+   * Conserva el estado editorial que se gestiona en Notion.
+   */
+  active?: boolean | null;
   bio?: string | null;
   /**
    * Ayuda a identificar al autor en los datos estructurados.
    */
   profileUrl?: string | null;
+  /**
+   * Se sincroniza desde Notion cuando no se ha cargado una fotografía en la biblioteca.
+   */
+  photoUrl?: string | null;
   image?: (number | null) | Media;
   migrationKey?: string | null;
   updatedAt: string;
@@ -730,6 +740,7 @@ export interface TeachingsSelect<T extends boolean = true> {
   topics?: T;
   excerpt?: T;
   youtubeUrl?: T;
+  youtubeDescription?: T;
   spotifyUrl?: T;
   image?: T;
   mediaLinks?:
@@ -847,8 +858,11 @@ export interface MediaSelect<T extends boolean = true> {
 export interface AuthorsSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
+  role?: T;
+  active?: T;
   bio?: T;
   profileUrl?: T;
+  photoUrl?: T;
   image?: T;
   migrationKey?: T;
   updatedAt?: T;

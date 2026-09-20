@@ -74,7 +74,7 @@ export const Resources: CollectionConfig = {
             { name: "kind", type: "select", label: "Tipo", required: true, defaultValue: "article", options: [{ label: "Artículo", value: "article" }, { label: "Contenido pilar", value: "pillar" }] },
             { name: "author", type: "relationship", relationTo: "authors", label: "Autor" },
             { name: "topics", type: "relationship", relationTo: "topics", hasMany: true, label: "Temas", admin: { description: "Usa pocos temas consistentes para mejorar navegación y búsqueda." } },
-            { name: "relatedTeachings", type: "relationship", relationTo: "teachings", hasMany: true, label: "Enseñanzas relacionadas" }
+            { name: "relatedTeachings", type: "relationship", relationTo: "teachings", hasMany: true, label: "Enseñanzas relacionadas", admin: { hidden: true } }
       ]
     },
     {
@@ -88,7 +88,7 @@ export const Resources: CollectionConfig = {
       label: "Distribución y SEO",
       admin: { initCollapsed: false },
       fields: [
-            { name: "featured", type: "checkbox", label: "Destacar en el sitio", defaultValue: false },
+            { name: "featured", type: "checkbox", label: "Destacar en el sitio", defaultValue: false, admin: { hidden: true } },
             slugField("title", true),
             seoFields,
             confirmSlugChangeField

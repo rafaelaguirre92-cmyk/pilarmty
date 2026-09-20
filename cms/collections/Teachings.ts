@@ -80,6 +80,13 @@ export const Teachings: CollectionConfig = {
   },
   fields: [
     {
+      name: "durationMinutes",
+      type: "number",
+      label: "Duración (minutos)",
+      min: 1,
+      admin: { hidden: true }
+    },
+    {
       type: "tabs",
       tabs: [
         {
@@ -116,9 +123,7 @@ export const Teachings: CollectionConfig = {
               name: "legacy",
               type: "checkbox",
               defaultValue: false,
-              admin: {
-                description: "Marcar si pertenece a la importación legacy inicial."
-              }
+              admin: { hidden: true }
             },
             ...notionSyncFields,
             ...translationReviewFields,
@@ -170,18 +175,9 @@ export const Teachings: CollectionConfig = {
       }
     },
     {
-      name: "durationMinutes",
-      type: "number",
-      label: "Duración (minutos)",
-      min: 1,
-      admin: {
-        position: "sidebar"
-      }
-    },
-    {
       name: "keyVerse",
       type: "text",
-      label: "Pasaje bíblico clave",
+      label: "Pasaje bíblico",
       localized: true,
       maxLength: 120,
       admin: {
@@ -230,6 +226,15 @@ export const Teachings: CollectionConfig = {
           admin: { placeholder: "https://www.youtube.com/watch?v=..." }
         },
         {
+          name: "youtubeDescription",
+          type: "textarea",
+          label: "Descripción de YouTube",
+          maxLength: 5000,
+          admin: {
+            description: "Texto editorial que acompaña al video en YouTube."
+          }
+        },
+        {
           name: "spotifyUrl",
           type: "text",
           label: "Episodio en Spotify",
@@ -246,22 +251,10 @@ export const Teachings: CollectionConfig = {
           name: "mediaLinks",
           type: "array",
           label: "Recursos adjuntos",
-          labels: { singular: "Recurso", plural: "Recursos" },
+          admin: { hidden: true },
           fields: [
-            {
-              name: "label",
-              type: "text",
-              label: "Nombre del archivo / recurso",
-              required: true,
-              admin: { width: "50%" }
-            },
-            {
-              name: "url",
-              type: "text",
-              label: "Enlace o URL",
-              required: true,
-              admin: { width: "50%" }
-            }
+            { name: "label", type: "text", label: "Nombre del archivo / recurso", required: true },
+            { name: "url", type: "text", label: "Enlace o URL", required: true }
           ]
         }
       ]

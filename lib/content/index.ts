@@ -64,11 +64,13 @@ export function normalizeTeachingPage(
     // leaves this blank instead of relying on the removed `Orador` text field.
     author: undefined,
     episode: propertyNumber(properties.Episodio),
+    keyVerse: propertyText(properties["Pasaje bíblico"]) || undefined,
     excerpt: propertyText(properties["Sinópsis"]) || undefined,
     seoDescription: propertyText(properties.SEO) || undefined,
     tags: propertyMultiSelect(properties.Etiquetas),
     image: propertyUrl(properties["Imagen URL"]),
     youtubeUrl: propertyUrl(properties["YouTube URL"]),
+    youtubeDescription: propertyText(properties["Descripción YouTube"]) || undefined,
     spotifyUrl: propertyUrl(properties["Spotify URL"]),
     updatedAt: page.last_edited_time,
     legacy,

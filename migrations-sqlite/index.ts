@@ -3,6 +3,7 @@ import * as migration_20260828_062426_communities_content_hub from './20260828_0
 import * as migration_20260831_014500_topic_page_publication from './20260831_014500_topic_page_publication';
 import * as migration_20260831_021500_topic_page_unpublication from './20260831_021500_topic_page_unpublication';
 import * as migration_20260920_120000_author_notion_fields from './20260920_120000_author_notion_fields';
+import * as migration_20260920_130000_youtube_description from './20260920_130000_youtube_description';
 
 export const migrations = [
   {
@@ -29,5 +30,10 @@ export const migrations = [
     up: migration_20260920_120000_author_notion_fields.up,
     down: migration_20260920_120000_author_notion_fields.down,
     name: '20260920_120000_author_notion_fields'
+  },
+  {
+    up: migration_20260920_130000_youtube_description.up,
+    down: migration_20260920_130000_youtube_description.down,
+    name: '20260920_130000_youtube_description'
   },
 ];
