@@ -45,7 +45,6 @@ function authorData(page: NotionPage) {
     name,
     slug: propertyText(page.properties.Slug) || undefined,
     role: propertySelect(page.properties.Rol) || undefined,
-    active: propertyCheckbox(page.properties.Activo),
     bio: propertyText(page.properties.Bio) || undefined,
     photoUrl: propertyUrl(page.properties["Foto URL"]) || undefined,
     migrationKey: `notion:author:${page.id}`

@@ -54,7 +54,7 @@ const notionTeachings = notionPages
   .map((page) => normalizeTeachingPage(page, { includeUnpublished: true }))
   .filter((item): item is NonNullable<typeof item> => Boolean(item));
 const notionResources = notionPages
-  .map(normalizeResourcePage)
+  .map((page) => normalizeResourcePage(page))
   .filter((item) => Boolean(item));
 
 const teachings = notionTeachings;

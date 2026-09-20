@@ -142,6 +142,7 @@ export interface UserAuthOperations {
  * via the `definition` "teachings".
  */
 export interface Teaching {
+  notionImageUrl?: string | null;
   id: number;
   title: string;
   body?: {
@@ -400,6 +401,7 @@ export interface Topic {
  * via the `definition` "resources".
  */
 export interface Resource {
+  notionImageUrl?: string | null;
   id: number;
   title: string;
   /**

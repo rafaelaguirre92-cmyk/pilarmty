@@ -220,33 +220,12 @@ export async function syncNotionPageToPayload(payload: Payload, pageId: string) 
         : undefined;
   if (!collection) return { skipped: "unsupported_type" as const };
 
-  const existing = await existingNotionDoc(payload, collection, page);
-  if (!propertyCheckbox(page.properties.Web)) {
-    if (existing) {
-      await payload.update({
-        collection,
-        id: existing.id,
-        data: {
-          _status: "draft",
-          sourceUpdatedAt: page.last_edited_time,
-          syncStatus: "synced",
-          lastSyncedAt: new Date().toISOString(),
-          lastSyncSource: "notion",
-          syncError: null
-        } as never,
-        locale: "es",
-        depth: 0,
-        overrideAccess: true,
-        context: { skipNotionSync: true, skipAutoTranslate: true }
-      });
-    }
-    return { skipped: "not_web" as const };
-  }
+  const status = propertyCheckbox(page.properties.Web) ? "published" : "draft";
 
   const warnings: string[] = [];
   const body = await notionBlocksToLexical(await getPageBlocks(pageId), undefined, warnings);
   if (collection === "teachings") {
-    const item = normalizeTeachingPage(page);
+    const item = normalizeTeachingPage(page, { includeUnpublished: true });
     if (!item) return { skipped: "invalid_teaching" as const };
     const author = await authorRelation(payload, page);
     const doc = await save(payload, collection, page, {
@@ -254,40 +233,42 @@ export async function syncNotionPageToPayload(payload: Payload, pageId: string) 
       slug: item.slug,
       series: await seriesRelation(payload, item.collection, item.collectionName),
       episode: item.episode,
-      keyVerse: item.keyVerse,
-      teachingDate: item.date,
-      author,
+      keyVerse: item.keyVerse || null,
+      teachingDate: item.date || null,
+      author: author || null,
       excerpt: item.excerpt,
       body,
       youtubeUrl: item.youtubeUrl,
-      youtubeDescription: item.youtubeDescription,
+      youtubeDescription: item.youtubeDescription || null,
+      notionImageUrl: item.image || null,
       spotifyUrl: item.spotifyUrl,
       topics: await topicRelations(payload, item.tags),
       legacy: item.legacy,
       seo: { description: fitSeoDescription(item.seoDescription) },
       sourceUpdatedAt: item.updatedAt,
-      _status: "published"
+      _status: status
     });
     const confirmedPage = await confirmInNotion(page, collection, doc.id);
     await finishNotionImport(payload, collection, doc.id, confirmedPage);
     return { collection, id: doc.id, warnings };
   }
 
-  const item = normalizeResourcePage(page);
+  const item = normalizeResourcePage(page, { includeUnpublished: true });
   if (!item) return { skipped: "invalid_resource" as const };
   const author = await authorRelation(payload, page);
   const doc = await save(payload, collection, page, {
     title: item.title,
     slug: item.slug,
     kind: item.kind === "contenido-pilar" ? "pillar" : "article",
-    contentDate: item.date,
-    author,
+    contentDate: item.date || null,
+    notionImageUrl: item.image || null,
+    author: author || null,
     excerpt: item.excerpt,
     body,
     topics: await topicRelations(payload, item.tags),
     seo: { description: fitSeoDescription(item.seoDescription) },
     sourceUpdatedAt: item.updatedAt,
-    _status: "published"
+    _status: status
   });
   const confirmedPage = await confirmInNotion(page, collection, doc.id);
   await finishNotionImport(payload, collection, doc.id, confirmedPage);

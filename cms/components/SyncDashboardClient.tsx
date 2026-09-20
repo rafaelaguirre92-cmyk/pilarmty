@@ -119,7 +119,7 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
           </div>
           <h1 className="pilar-sync-header__title">Tablero de Sincronización</h1>
           <p className="pilar-sync-header__description">
-            Monitorea el estado de sincronización bidireccional, consulta el historial de despliegues y ejecuta sincronizaciones bajo demanda.
+            Notion es la fuente editorial. Importa autores y contenidos completos a Payload; Web determina si quedan publicados o como borradores.
           </p>
         </div>
         <div className="pilar-sync-header__actions">

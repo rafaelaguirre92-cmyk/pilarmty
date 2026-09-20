@@ -34,9 +34,7 @@ export const Authors: CollectionConfig = {
       type: "checkbox",
       label: "Activo",
       defaultValue: true,
-      admin: {
-        description: "Conserva el estado editorial que se gestiona en Notion."
-      }
+      admin: { hidden: true, disableListColumn: true, disableListFilter: true }
     },
     { name: "bio", type: "textarea", label: "Biografía" },
     {

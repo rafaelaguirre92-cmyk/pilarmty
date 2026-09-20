@@ -15,6 +15,7 @@ import {
 } from "@/lib/notion";
 
 export type SyncCollection = "teachings" | "resources";
+function notionIsEditorialSource() { return true; }
 export type SyncDocument = Record<string, unknown> & {
   id: number | string;
   notionPageId?: string | null;
@@ -160,8 +161,8 @@ export async function pushPayloadDocumentToNotion(
   collection: SyncCollection,
   doc: SyncDocument
 ) {
-  if (!notionWritebackIsEnabled()) {
-    throw new Error("La escritura en Notion no está habilitada.");
+  if (notionIsEditorialSource()) {
+    throw new Error("Edita el contenido en Notion, la fuente editorial de verdad.");
   }
 
   const syncedAt = new Date().toISOString();
@@ -202,7 +203,7 @@ export async function pushPayloadDocumentToNotion(
  */
 export const markNotionSyncPending: CollectionBeforeChangeHook = ({ data, req }) => {
   if (
-    !notionWritebackIsEnabled() ||
+    notionIsEditorialSource() || !notionWritebackIsEnabled() ||
     req.context?.skipNotionSync ||
     req.locale === "en"
   ) {

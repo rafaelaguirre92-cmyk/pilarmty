@@ -101,7 +101,7 @@ function mapTeaching(
     keyVerse: doc.keyVerse || undefined,
     body: doc.body as Record<string, unknown> | undefined,
     tags: topicNames(doc.topics),
-    image: mediaUrl(doc.image) || mediaUrl(series?.image),
+    image: doc.notionImageUrl || mediaUrl(doc.image) || mediaUrl(series?.image),
     imageAlt: mediaAlt(doc.image) || mediaAlt(series?.image) || series?.title,
     durationMinutes: doc.durationMinutes || undefined,
     youtubeUrl: doc.youtubeUrl || undefined,
@@ -138,7 +138,7 @@ function mapResource(
     authorUrl: authorUrl(doc.author),
     date: doc.contentDate || undefined,
     tags: topicNames(doc.topics),
-    image: mediaUrl(doc.image),
+    image: doc.notionImageUrl || mediaUrl(doc.image),
     imageAlt: mediaAlt(doc.image),
     relatedTeachingSlugs: Array.isArray(doc.relatedTeachings)
       ? doc.relatedTeachings

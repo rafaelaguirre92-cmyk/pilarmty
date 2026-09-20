@@ -56,7 +56,7 @@ async function notionFetch<T>(path: string, init?: RequestInit): Promise<T> {
       "Content-Type": "application/json",
       ...init?.headers
     },
-    next: { revalidate: 300, tags: ["notion-content"] }
+    cache: "no-store"
   });
 
   if (!response.ok) {

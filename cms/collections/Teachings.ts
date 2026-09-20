@@ -247,6 +247,7 @@ export const Teachings: CollectionConfig = {
           relationTo: "media",
           label: "Portada o imagen principal"
         },
+        { name: "notionImageUrl", type: "text", label: "Imagen URL de Notion", admin: { readOnly: true, description: "Tiene prioridad sobre la imagen de la serie." } },
         {
           name: "mediaLinks",
           type: "array",

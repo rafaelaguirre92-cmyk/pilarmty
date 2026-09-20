@@ -55,6 +55,7 @@ export const Resources: CollectionConfig = {
     afterDelete: [afterEditorialDelete("resources")]
   },
   fields: [
+    { name: "notionImageUrl", type: "text", label: "Imagen URL de Notion", admin: { readOnly: true } },
     {
       type: "collapsible",
       label: "Contenido",

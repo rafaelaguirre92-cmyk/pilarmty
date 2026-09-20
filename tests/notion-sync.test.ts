@@ -11,13 +11,13 @@ const baseDoc = {
   sourceUpdatedAt: "2026-08-29T10:00:00.000Z"
 };
 
-test("Payload wins when it has a pending change", () => {
+test("Notion remains authoritative even when Payload has a pending change", () => {
   assert.equal(
     decideSyncDirection(
       { ...baseDoc, syncStatus: "pending", lastSyncSource: "payload" },
       "2026-08-30T10:00:00.000Z"
     ),
-    "payload-to-notion"
+    "notion-to-payload"
   );
 });
 
@@ -28,10 +28,10 @@ test("Notion is imported when it is the only changed side", () => {
   );
 });
 
-test("unchanged timestamps do not trigger a remote write", () => {
+test("equal timestamps still reconcile fields missed by earlier imports", () => {
   assert.equal(
     decideSyncDirection(baseDoc, "2026-08-29T10:00:00.000Z"),
-    "unchanged"
+    "notion-to-payload"
   );
 });
 

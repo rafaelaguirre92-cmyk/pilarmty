@@ -79,14 +79,15 @@ export function normalizeTeachingPage(
 }
 
 export function normalizeResourcePage(
-  page: Awaited<ReturnType<typeof queryResourcePages>>[number]
+  page: Awaited<ReturnType<typeof queryResourcePages>>[number],
+  options: { includeUnpublished?: boolean } = {}
 ): Resource | null {
   const properties = page.properties;
   const notionType = propertySelect(properties.Tipo);
   if (notionType !== "Articulo" && notionType !== "Pilar Content") {
     return null;
   }
-  if (!propertyCheckbox(properties.Web)) return null;
+  if (!options.includeUnpublished && !propertyCheckbox(properties.Web)) return null;
 
   const slug = propertyText(properties.Slug);
   const title = propertyText(properties.Nombre);
@@ -118,7 +119,7 @@ async function notionCatalog() {
         .map((page) => normalizeTeachingPage(page))
         .filter((item): item is Teaching => Boolean(item)),
       resources: pages
-        .map(normalizeResourcePage)
+        .map((page) => normalizeResourcePage(page))
         .filter((item): item is Resource => Boolean(item))
     };
   } catch (error) {
