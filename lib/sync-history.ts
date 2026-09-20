@@ -25,8 +25,13 @@ export type SyncHistoryEntry = {
 
 const BLOB_FILENAME = "notion-sync-history.json";
 const LOCAL_PATH = path.resolve(process.cwd(), ".payload/sync-history.json");
+const isVercelRuntime = process.env.VERCEL === "1";
 
 async function readLocalHistory(): Promise<SyncHistoryEntry[]> {
+  // Vercel function bundles are read-only and ephemeral; use Blob as the
+  // production source of truth instead of trying to read a local cache.
+  if (isVercelRuntime) return [];
+
   try {
     const raw = await fs.readFile(LOCAL_PATH, "utf-8");
     const data = JSON.parse(raw);
@@ -38,6 +43,10 @@ async function readLocalHistory(): Promise<SyncHistoryEntry[]> {
 }
 
 async function writeLocalHistory(entries: SyncHistoryEntry[]): Promise<void> {
+  // Local persistence is only useful during development. Vercel functions
+  // cannot reliably write to the deployed bundle filesystem.
+  if (isVercelRuntime) return;
+
   try {
     await fs.mkdir(path.dirname(LOCAL_PATH), { recursive: true });
     await fs.writeFile(LOCAL_PATH, JSON.stringify(entries, null, 2), "utf-8");
@@ -69,7 +78,8 @@ async function writeBlobHistory(entries: SyncHistoryEntry[]): Promise<void> {
     await put(BLOB_FILENAME, JSON.stringify(entries, null, 2), {
       access: "public",
       contentType: "application/json",
-      addRandomSuffix: false
+      addRandomSuffix: false,
+      allowOverwrite: true
     });
   } catch (error) {
     console.error("Error al persistir historial de sincronización en Vercel Blob:", error);
