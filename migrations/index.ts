@@ -3,6 +3,7 @@ import * as migration_20260901_141500_spotify_audio from './20260901_141500_spot
 import * as migration_20260903_120000_series_image_formats from './20260903_120000_series_image_formats';
 import * as migration_20260920_120000_author_notion_fields from './20260920_120000_author_notion_fields';
 import * as migration_20260920_130000_youtube_description from './20260920_130000_youtube_description';
+import * as migration_20260920_140000_archive_legacy_teaching_duplicates from './20260920_140000_archive_legacy_teaching_duplicates';
 
 export const migrations = [
   {
@@ -29,5 +30,10 @@ export const migrations = [
     up: migration_20260920_130000_youtube_description.up,
     down: migration_20260920_130000_youtube_description.down,
     name: '20260920_130000_youtube_description'
+  },
+  {
+    up: migration_20260920_140000_archive_legacy_teaching_duplicates.up,
+    down: migration_20260920_140000_archive_legacy_teaching_duplicates.down,
+    name: '20260920_140000_archive_legacy_teaching_duplicates'
   },
 ];
