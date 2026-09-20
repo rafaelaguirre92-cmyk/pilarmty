@@ -58,12 +58,18 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
         throw new Error(data.error || "Error al ejecutar la sincronización.");
       }
 
-      // Re-fetch latest history
-      const historyRes = await fetch("/api/notion/sync/history", { cache: "no-store" });
-      if (historyRes.ok) {
-        const historyData = await historyRes.json();
-        if (Array.isArray(historyData.history)) {
-          setHistory(historyData.history);
+      // Update history immediately from response, or fallback to cache-busted endpoint
+      if (Array.isArray(data.history) && data.history.length > 0) {
+        setHistory(data.history);
+      } else if (data.entry) {
+        setHistory((prev) => [data.entry, ...prev.filter((item) => item.id !== data.entry.id)]);
+      } else {
+        const historyRes = await fetch(`/api/notion/sync/history?t=${Date.now()}`, { cache: "no-store" });
+        if (historyRes.ok) {
+          const historyData = await historyRes.json();
+          if (Array.isArray(historyData.history)) {
+            setHistory(historyData.history);
+          }
         }
       }
 

@@ -12,10 +12,10 @@ async function execute(trigger: "manual" | "cron") {
   const payload = await getPayload({ config });
   const result = await runNotionPayloadSync(payload);
 
-  await recordSyncRun({
+  const entry = {
     id: result.runId || `sync_${Date.now().toString(36)}`,
     finishedAt: result.finishedAt || new Date().toISOString(),
-    status: result.errors.length > 0 ? "incident" : "ready",
+    status: result.errors.length > 0 ? ("incident" as const) : ("ready" as const),
     trigger,
     payloadToNotion: result.payloadToNotion,
     notionToPayload: result.notionToPayload,
@@ -23,11 +23,18 @@ async function execute(trigger: "manual" | "cron") {
     unchanged: result.unchanged,
     skipped: result.skipped,
     errors: result.errors
-  });
+  };
+
+  const history = await recordSyncRun(entry);
 
   revalidateTag("notion-content", "max");
   revalidatePath("/", "layout");
-  return Response.json({ ok: result.errors.length === 0, result }, {
+  return Response.json({
+    ok: result.errors.length === 0,
+    result,
+    entry,
+    history
+  }, {
     status: result.errors.length === 0 ? 200 : 207
   });
 }
@@ -41,21 +48,26 @@ export async function GET(request: Request) {
   try {
     return await execute("cron");
   } catch (error) {
-    await recordSyncRun({
+    const errorEntry = {
       id: `sync_${Date.now().toString(36)}`,
       finishedAt: new Date().toISOString(),
-      status: "error",
-      trigger: "cron",
+      status: "error" as const,
+      trigger: "cron" as const,
       payloadToNotion: 0,
       notionToPayload: 0,
       createdInNotion: 0,
       unchanged: 0,
       skipped: 0,
       errors: [{ message: error instanceof Error ? error.message : String(error) }]
-    });
+    };
+    const history = await recordSyncRun(errorEntry);
 
     return Response.json(
-      { error: error instanceof Error ? error.message : String(error) },
+      {
+        error: error instanceof Error ? error.message : String(error),
+        entry: errorEntry,
+        history
+      },
       { status: 500 }
     );
   }
@@ -71,21 +83,26 @@ export async function POST(request: Request) {
   try {
     return await execute("manual");
   } catch (error) {
-    await recordSyncRun({
+    const errorEntry = {
       id: `sync_${Date.now().toString(36)}`,
       finishedAt: new Date().toISOString(),
-      status: "error",
-      trigger: "manual",
+      status: "error" as const,
+      trigger: "manual" as const,
       payloadToNotion: 0,
       notionToPayload: 0,
       createdInNotion: 0,
       unchanged: 0,
       skipped: 0,
       errors: [{ message: error instanceof Error ? error.message : String(error) }]
-    });
+    };
+    const history = await recordSyncRun(errorEntry);
 
     return Response.json(
-      { error: error instanceof Error ? error.message : String(error) },
+      {
+        error: error instanceof Error ? error.message : String(error),
+        entry: errorEntry,
+        history
+      },
       { status: 500 }
     );
   }

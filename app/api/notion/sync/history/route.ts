@@ -14,11 +14,24 @@ export async function GET(request: Request) {
 
   try {
     const history = await getSyncHistory();
-    return Response.json({ ok: true, history }, { status: 200 });
+    return Response.json(
+      { ok: true, history },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate"
+        }
+      }
+    );
   } catch (error) {
     return Response.json(
       { error: error instanceof Error ? error.message : String(error) },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate"
+        }
+      }
     );
   }
 }
