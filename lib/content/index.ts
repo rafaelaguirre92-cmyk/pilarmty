@@ -39,7 +39,7 @@ export function normalizeTeachingPage(
   if (propertySelect(properties.Tipo) !== "Enseñanza") return null;
 
   const slug = propertyText(properties.Slug);
-  const collection = propertySelect(properties["Sección"]);
+  const collection = normalizePathSegment(propertySelect(properties.Serie));
   const title = propertyText(properties.Nombre);
   if (!slug || !collection || !title) return null;
   const legacy = spanishTeachings.some(
@@ -59,14 +59,15 @@ export function normalizeTeachingPage(
     title,
     locale: "es",
     date: propertyDate(properties.Fecha),
-    author: propertySelect(properties.Orador) || undefined,
+    // Notion now stores authors as a relation. The public site reads the
+    // resolved author from Payload; the direct-Notion fallback intentionally
+    // leaves this blank instead of relying on the removed `Orador` text field.
+    author: undefined,
     episode: propertyNumber(properties.Episodio),
     excerpt: propertyText(properties["Sinópsis"]) || undefined,
     seoDescription: propertyText(properties.SEO) || undefined,
     tags: propertyMultiSelect(properties.Etiquetas),
-    image:
-      propertyUrl(properties["Imagen URL"]) ||
-      propertyUrl(properties["Cover URL"]),
+    image: propertyUrl(properties["Imagen URL"]),
     youtubeUrl: propertyUrl(properties["YouTube URL"]),
     spotifyUrl: propertyUrl(properties["Spotify URL"]),
     updatedAt: page.last_edited_time,
@@ -97,12 +98,10 @@ export function normalizeResourcePage(
     kind: notionType === "Articulo" ? "articulo" : "contenido-pilar",
     excerpt: propertyText(properties["Sinópsis"]) || undefined,
     seoDescription: propertyText(properties.SEO) || undefined,
-    author: propertySelect(properties.Orador) || undefined,
+    author: undefined,
     date: propertyDate(properties.Fecha),
     tags: propertyMultiSelect(properties.Etiquetas),
-    image:
-      propertyUrl(properties["Imagen URL"]) ||
-      propertyUrl(properties["Cover URL"]),
+    image: propertyUrl(properties["Imagen URL"]),
     updatedAt: page.last_edited_time,
     relatedTeachingSlugs: []
   };

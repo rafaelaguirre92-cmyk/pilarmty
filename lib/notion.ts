@@ -5,7 +5,7 @@ import type { NotionBlock } from "@/lib/types";
 const apiVersion = process.env.NOTION_API_VERSION || "2025-09-03";
 const dataSourceId =
   process.env.NOTION_DATA_SOURCE_ID ||
-  "349de065-6c3e-80db-b431-000b11c998e7";
+  "f8ac1f5b-bbe9-8222-93e2-07b40a645865";
 
 export type NotionPage = {
   id: string;
@@ -14,7 +14,7 @@ export type NotionPage = {
   properties: Record<string, NotionProperty>;
 };
 
-type NotionProperty = {
+export type NotionProperty = {
   type?: string;
   title?: Array<{ plain_text?: string }>;
   rich_text?: Array<{ plain_text?: string }>;
@@ -25,6 +25,12 @@ type NotionProperty = {
   checkbox?: boolean;
   url?: string | null;
   relation?: Array<{ id?: string }>;
+};
+
+type NotionDataSource = {
+  properties?: Record<string, NotionProperty & {
+    relation?: { data_source_id?: string; database_id?: string };
+  }>;
 };
 
 type Paginated<T> = {
@@ -64,6 +70,23 @@ export function notionDataSourceId() {
   return dataSourceId;
 }
 
+export async function notionAuthorsDataSourceId() {
+  const configured = process.env.NOTION_AUTHORS_DATA_SOURCE_ID?.trim();
+  if (configured) return configured;
+
+  const source = await notionFetch<NotionDataSource>(`/data_sources/${dataSourceId}`, {
+    cache: "no-store"
+  });
+  const relation = source.properties?.Autor?.relation;
+  const relatedDataSourceId = relation?.data_source_id || relation?.database_id;
+  if (!relatedDataSourceId) {
+    throw new Error(
+      "La conexión no puede leer la base relacionada de Autores en Notion."
+    );
+  }
+  return relatedDataSourceId;
+}
+
 export async function ensureNotionSpotifyProperty() {
   return notionFetch(`/data_sources/${dataSourceId}`, {
     method: "PATCH",
@@ -97,6 +120,20 @@ export async function createNotionPage(properties: Record<string, unknown>) {
     cache: "no-store",
     body: JSON.stringify({
       parent: { type: "data_source_id", data_source_id: dataSourceId },
+      properties
+    })
+  });
+}
+
+export async function createNotionPageInDataSource(
+  parentDataSourceId: string,
+  properties: Record<string, unknown>
+) {
+  return notionFetch<NotionPage>("/pages", {
+    method: "POST",
+    cache: "no-store",
+    body: JSON.stringify({
+      parent: { type: "data_source_id", data_source_id: parentDataSourceId },
       properties
     })
   });
@@ -142,12 +179,16 @@ export function notionPageUrl(pageId: string) {
 }
 
 export async function queryResourcePages(): Promise<NotionPage[]> {
+  return queryNotionDataSource(dataSourceId);
+}
+
+export async function queryNotionDataSource(sourceId: string): Promise<NotionPage[]> {
   const pages: NotionPage[] = [];
   let cursor: string | undefined;
 
   do {
     const response = await notionFetch<Paginated<NotionPage>>(
-      `/data_sources/${dataSourceId}/query`,
+      `/data_sources/${sourceId}/query`,
       {
         method: "POST",
         body: JSON.stringify({
@@ -163,6 +204,10 @@ export async function queryResourcePages(): Promise<NotionPage[]> {
   } while (cursor);
 
   return pages;
+}
+
+export async function queryNotionAuthorPages() {
+  return queryNotionDataSource(await notionAuthorsDataSourceId());
 }
 
 export function propertyText(property: NotionProperty | undefined) {
@@ -195,6 +240,12 @@ export function propertyCheckbox(property: NotionProperty | undefined) {
 
 export function propertyUrl(property: NotionProperty | undefined) {
   return property?.url || undefined;
+}
+
+export function propertyRelationIds(property: NotionProperty | undefined) {
+  return (property?.relation || [])
+    .map((value) => value.id)
+    .filter((value): value is string => Boolean(value));
 }
 
 export async function getPageBlocks(pageId: string): Promise<NotionBlock[]> {

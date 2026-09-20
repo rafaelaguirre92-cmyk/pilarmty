@@ -20,12 +20,43 @@ export const Authors: CollectionConfig = {
   fields: [
     { name: "name", type: "text", label: "Nombre", required: true, unique: true },
     slugField("name"),
+    {
+      name: "role",
+      type: "select",
+      label: "Rol",
+      options: [
+        { label: "Pastor", value: "Pastor" },
+        { label: "Invitado", value: "Invitado" }
+      ]
+    },
+    {
+      name: "active",
+      type: "checkbox",
+      label: "Activo",
+      defaultValue: true,
+      admin: {
+        description: "Conserva el estado editorial que se gestiona en Notion."
+      }
+    },
     { name: "bio", type: "textarea", label: "Biografía" },
     {
       name: "profileUrl",
       type: "text",
       label: "Página o perfil del autor",
       admin: { description: "Ayuda a identificar al autor en los datos estructurados." },
+      validate: (value: unknown) => {
+        if (!value) return true;
+        if (typeof value !== "string") return "Debe ser una URL.";
+        try { new URL(value); return true; } catch { return "Debe ser una URL absoluta válida."; }
+      }
+    },
+    {
+      name: "photoUrl",
+      type: "text",
+      label: "URL de fotografía",
+      admin: {
+        description: "Se sincroniza desde Notion cuando no se ha cargado una fotografía en la biblioteca."
+      },
       validate: (value: unknown) => {
         if (!value) return true;
         if (typeof value !== "string") return "Debe ser una URL.";

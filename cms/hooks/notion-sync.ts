@@ -54,6 +54,19 @@ async function topicNames(payload: Payload, value: unknown) {
   return Promise.all(value.map((topic) => relationValue(payload, "topics", topic, "name")));
 }
 
+async function authorNotionRelation(payload: Payload, value: unknown) {
+  const id = relationId(value);
+  if (!id) return { relation: [] };
+  const author = await payload.findByID({
+    collection: "authors",
+    id,
+    depth: 0,
+    overrideAccess: true
+  }) as unknown as { migrationKey?: string };
+  const match = author.migrationKey?.match(/^notion:author:(.+)$/);
+  return match ? { relation: [{ id: match[1] }] } : undefined;
+}
+
 function text(value: unknown) {
   const content = typeof value === "string" ? value.trim() : "";
   return { rich_text: content ? [{ type: "text", text: { content } }] : [] };
@@ -85,7 +98,7 @@ export async function notionProperties(
   payload: Payload,
   syncedAt: string
 ) {
-  const author = await relationValue(payload, "authors", doc.author, "name");
+  const author = await authorNotionRelation(payload, doc.author);
   const topics = (await topicNames(payload, doc.topics)).filter(Boolean);
   const common: Record<string, unknown> = {
     Nombre: title(doc.title),
@@ -94,7 +107,6 @@ export async function notionProperties(
     SEO: text(seoDescription(doc)),
     Fecha: date(collection === "teachings" ? doc.teachingDate : doc.contentDate),
     Web: { checkbox: doc._status === "published" },
-    Orador: select(author),
     Etiquetas: { multi_select: topics.map((name) => ({ name })) },
     "Payload ID": text(String(doc.id)),
     "CMS URL": {
@@ -104,15 +116,14 @@ export async function notionProperties(
     "Última sincronización": { date: { start: syncedAt } },
     "Origen del último cambio": select("Payload")
   };
+  if (author) common.Autor = author;
 
   if (collection === "teachings") {
     const seriesName = await relationValue(payload, "series", doc.series, "title");
-    const seriesSlug = await relationValue(payload, "series", doc.series, "slug");
     return {
       ...common,
       Tipo: select("Enseñanza"),
       Serie: select(seriesName),
-      "Sección": select(seriesSlug),
       Episodio: { number: typeof doc.episode === "number" ? doc.episode : null },
       "YouTube URL": { url: typeof doc.youtubeUrl === "string" ? doc.youtubeUrl || null : null },
       "Spotify URL": {

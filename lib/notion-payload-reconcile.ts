@@ -17,6 +17,7 @@ import {
   type NotionPage
 } from "@/lib/notion";
 import { syncNotionPageToPayload } from "@/lib/notion-payload-sync";
+import { syncNotionAuthorsToPayload } from "@/lib/notion-authors-sync";
 
 type ReconcileDocument = SyncDocument & {
   lastSyncSource?: "notion" | "payload" | null;
@@ -202,6 +203,7 @@ async function executeSync(payload: Payload): Promise<NotionPayloadSyncSummary> 
     errors: []
   };
   const pages = await queryResourcePages();
+  await syncNotionAuthorsToPayload(payload);
   const linkedPayloadIds = new Set<string>();
 
   for (const page of pages) {

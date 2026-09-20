@@ -7,12 +7,14 @@ import {
   notionPageUrl,
   notionWritebackIsEnabled,
   propertyCheckbox,
+  propertyRelationIds,
   propertySelect,
   propertyText,
   propertyUrl,
   updateNotionPageProperties,
   type NotionPage
 } from "@/lib/notion";
+import { authorIdForNotionRelation } from "@/lib/notion-authors-sync";
 import { notionBlocksToLexical } from "@/lib/notion-to-lexical";
 import { slugToTitle } from "@/lib/site";
 
@@ -98,6 +100,11 @@ async function seriesRelation(payload: Payload, slug: string, title?: string) {
 
 async function topicRelations(payload: Payload, names: string[]) {
   return (await Promise.all(names.map((name) => namedRelation(payload, "topics", name)))).filter(Boolean);
+}
+
+async function authorRelation(payload: Payload, page: NotionPage) {
+  const [authorPageId] = propertyRelationIds(page.properties.Autor);
+  return authorPageId ? authorIdForNotionRelation(payload, authorPageId) : undefined;
 }
 
 async function save(
@@ -241,9 +248,7 @@ export async function syncNotionPageToPayload(payload: Payload, pageId: string) 
   if (collection === "teachings") {
     const item = normalizeTeachingPage(page);
     if (!item) return { skipped: "invalid_teaching" as const };
-    const author = item.author
-      ? await namedRelation(payload, "authors", item.author)
-      : undefined;
+    const author = await authorRelation(payload, page);
     const doc = await save(payload, collection, page, {
       title: item.title,
       slug: item.slug,
@@ -268,9 +273,7 @@ export async function syncNotionPageToPayload(payload: Payload, pageId: string) 
 
   const item = normalizeResourcePage(page);
   if (!item) return { skipped: "invalid_resource" as const };
-  const author = item.author
-    ? await namedRelation(payload, "authors", item.author)
-    : undefined;
+  const author = await authorRelation(payload, page);
   const doc = await save(payload, collection, page, {
     title: item.title,
     slug: item.slug,

@@ -52,7 +52,9 @@ function authorUrl(value: unknown) {
 }
 
 function authorImage(value: unknown) {
-  return mediaUrl(related<Author>(value)?.image);
+  const author = related<Author>(value);
+  return mediaUrl(author?.image) ||
+    ((author as (Author & { photoUrl?: string }) | undefined)?.photoUrl || undefined);
 }
 
 function topicNames(values: unknown) {
