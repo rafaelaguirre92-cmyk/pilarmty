@@ -79,6 +79,7 @@ async function seriesRelation(payload: Payload, slug: string, title?: string) {
     locale: "es",
     depth: 0,
     overrideAccess: true,
+    draft: false,
     context: { skipNotionSync: true, skipAutoTranslate: true }
   });
   return created.id;
@@ -100,50 +101,44 @@ async function save(
   data: Record<string, unknown>
 ) {
   const existing = await findLinkedDocument(payload, collection, page);
+  const status = data._status === "published" ? "published" : "draft";
+  // Draft-only writes must use draft:true so they don't create a sparse
+  // "latest version" that admin list reads without series/author.
+  // Published writes update main + version together with the full payload.
+  const savingDraft = status === "draft";
   const common = {
     ...data,
+    _status: status,
     migrationKey: `notion:${page.id}`,
     notionPageId: page.id,
     notionUrl: notionPageUrl(page.id),
+    sourceUpdatedAt: page.last_edited_time,
     syncStatus: "synced",
     lastSyncedAt: new Date().toISOString(),
     lastSyncSource: "notion",
     syncError: null
   };
+  const write = {
+    collection,
+    data: common as never,
+    locale: "es" as const,
+    depth: 0,
+    overrideAccess: true,
+    draft: savingDraft,
+    context: { skipNotionSync: true, skipAutoTranslate: true }
+  };
+
   if (existing) {
-    return payload.update({
-      collection,
-      id: existing.id,
-      data: common as never,
-      locale: "es",
-      depth: 0,
-      overrideAccess: true,
-      context: { skipNotionSync: true, skipAutoTranslate: true }
-    });
+    return payload.update({ ...write, id: existing.id });
   }
   try {
-    return await payload.create({
-      collection,
-      data: common as never,
-      locale: "es",
-      depth: 0,
-      overrideAccess: true,
-      context: { skipNotionSync: true, skipAutoTranslate: true }
-    });
+    return await payload.create(write);
   } catch (error) {
     // A second webhook or cron worker may have created this page between the
     // lookup above and the insert. Re-read the unique link and update it.
     const concurrent = await findLinkedDocument(payload, collection, page);
     if (!concurrent) throw error;
-    return payload.update({
-      collection,
-      id: concurrent.id,
-      data: common as never,
-      locale: "es",
-      depth: 0,
-      overrideAccess: true,
-      context: { skipNotionSync: true, skipAutoTranslate: true }
-    });
+    return payload.update({ ...write, id: concurrent.id });
   }
 }
 
@@ -175,29 +170,6 @@ async function confirmInNotion(
     console.error("Notion metadata writeback failed", error);
     return page;
   }
-}
-
-async function finishNotionImport(
-  payload: Payload,
-  collection: EditorialCollection,
-  id: number | string,
-  page: Awaited<ReturnType<typeof getNotionPage>>
-) {
-  await payload.update({
-    collection,
-    id,
-    data: {
-      sourceUpdatedAt: page.last_edited_time,
-      syncStatus: "synced",
-      lastSyncedAt: new Date().toISOString(),
-      lastSyncSource: "notion",
-      syncError: null
-    } as never,
-    locale: "es",
-    depth: 0,
-    overrideAccess: true,
-    context: { skipNotionSync: true, skipAutoTranslate: true }
-  });
 }
 
 export async function syncNotionPageToPayload(payload: Payload, pageId: string) {
@@ -253,11 +225,9 @@ export async function syncNotionPageToPayload(payload: Payload, pageId: string) 
       topics: await topicRelations(payload, item.tags),
       legacy: item.legacy,
       seo: { description: fitSeoDescription(item.seoDescription) },
-      sourceUpdatedAt: item.updatedAt,
       _status: status
     });
-    const confirmedPage = await confirmInNotion(page, collection, doc.id);
-    await finishNotionImport(payload, collection, doc.id, confirmedPage);
+    await confirmInNotion(page, collection, doc.id);
     return { collection, id: doc.id, warnings };
   }
 
@@ -282,10 +252,8 @@ export async function syncNotionPageToPayload(payload: Payload, pageId: string) 
     body,
     topics: await topicRelations(payload, item.tags),
     seo: { description: fitSeoDescription(item.seoDescription) },
-    sourceUpdatedAt: item.updatedAt,
     _status: status
   });
-  const confirmedPage = await confirmInNotion(page, collection, doc.id);
-  await finishNotionImport(payload, collection, doc.id, confirmedPage);
+  await confirmInNotion(page, collection, doc.id);
   return { collection, id: doc.id, warnings };
 }
