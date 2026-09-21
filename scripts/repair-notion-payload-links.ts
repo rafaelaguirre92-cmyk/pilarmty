@@ -1,5 +1,10 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import type {
+  DuplicatePair,
+  LinkedDocument,
+  SyncCollection
+} from "../lib/notion-payload-link";
 
 if (existsSync(".env.local")) process.loadEnvFile(".env.local");
 if (existsSync(".env")) process.loadEnvFile(".env");
@@ -11,10 +16,7 @@ const { getPayload } = await import("payload");
 const config = (await import("@payload-config")).default;
 const {
   findDuplicateSlugGroups,
-  pickCanonicalDocument,
-  type DuplicatePair,
-  type LinkedDocument,
-  type SyncCollection
+  pickCanonicalDocument
 } = await import("../lib/notion-payload-link");
 const {
   notionIsConfigured,
