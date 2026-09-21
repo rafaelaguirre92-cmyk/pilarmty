@@ -95,6 +95,60 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
     }
   }
 
+  async function handleMergeDuplicates() {
+    setSyncing(true);
+    setFeedback(null);
+    try {
+      const previewRes = await fetch("/api/notion/repair-duplicates", { method: "GET" });
+      const preview = await previewRes.json();
+      if (!previewRes.ok) {
+        throw new Error(preview.error || "No se pudo revisar los duplicados.");
+      }
+
+      const count = preview.result?.duplicates?.length || 0;
+      if (count === 0) {
+        setFeedback({
+          type: "success",
+          message: "No se encontraron duplicados activos para unir."
+        });
+        return;
+      }
+
+      const confirmed = window.confirm(
+        `Se encontraron ${count} grupo(s) duplicado(s).\n\nSe conservará el Publicado (o el mejor candidato) y se enviará el resto a la papelera.\n\n¿Continuar?`
+      );
+      if (!confirmed) {
+        setFeedback({
+          type: "warning",
+          message: "Unión de duplicados cancelada."
+        });
+        return;
+      }
+
+      const res = await fetch("/api/notion/repair-duplicates?write=1", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok && res.status !== 207) {
+        throw new Error(data.error || "No se pudieron unir los duplicados.");
+      }
+
+      const merged = data.result?.duplicates?.length || 0;
+      const errors = data.result?.errors?.length || 0;
+      setFeedback({
+        type: errors ? "warning" : "success",
+        message: errors
+          ? `Se unieron ${merged} grupo(s) con ${errors} error(es). Revisa la lista de enseñanzas.`
+          : `Se unieron ${merged} grupo(s) de duplicados. Recarga Enseñanzas para ver el resultado.`
+      });
+    } catch (err) {
+      setFeedback({
+        type: "error",
+        message: err instanceof Error ? err.message : String(err)
+      });
+    } finally {
+      setSyncing(false);
+    }
+  }
+
   function toggleExpand(id: string) {
     setExpandedId((current) => (current === id ? null : id));
   }
@@ -123,6 +177,15 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
           </p>
         </div>
         <div className="pilar-sync-header__actions">
+          <Button
+            buttonStyle="secondary"
+            disabled={syncing}
+            onClick={handleMergeDuplicates}
+            type="button"
+            className="pilar-sync-btn"
+          >
+            {syncing ? "Procesando…" : "Unir duplicados"}
+          </Button>
           <Button
             buttonStyle="primary"
             disabled={syncing}

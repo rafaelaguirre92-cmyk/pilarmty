@@ -11,9 +11,11 @@ export type SyncCollection = "teachings" | "resources";
 export type LinkedDocument = {
   id: number | string;
   slug?: string | null;
+  title?: string | null;
   notionPageId?: string | null;
   migrationKey?: string | null;
   notionUrl?: string | null;
+  deletedAt?: string | null;
   _status?: "draft" | "published" | null;
   lastSyncedAt?: string | null;
   sourceUpdatedAt?: string | null;
@@ -164,26 +166,51 @@ export async function findDuplicateSlugGroups(
     draft: true,
     depth: 0,
     limit: 1000,
-    overrideAccess: true
+    overrideAccess: true,
+    pagination: false
   });
+
   const docs = result.docs
     .map((doc) => asDoc(doc))
-    .filter((doc): doc is LinkedDocument => Boolean(doc?.slug));
+    .filter((doc): doc is LinkedDocument => Boolean(doc) && !doc?.deletedAt);
 
   const bySlug = new Map<string, LinkedDocument[]>();
+  const byTitle = new Map<string, LinkedDocument[]>();
+
   for (const doc of docs) {
-    const slug = String(doc.slug);
-    const group = bySlug.get(slug) || [];
+    const slug = typeof doc.slug === "string" ? doc.slug.trim() : "";
+    if (slug) {
+      const group = bySlug.get(slug) || [];
+      group.push(doc);
+      bySlug.set(slug, group);
+      continue;
+    }
+
+    const title = typeof doc.title === "string" ? doc.title.toLocaleLowerCase("es-MX").trim() : "";
+    if (!title) continue;
+    const group = byTitle.get(title) || [];
     group.push(doc);
-    bySlug.set(slug, group);
+    byTitle.set(title, group);
   }
 
   const pairs: DuplicatePair[] = [];
+  const seen = new Set<string>();
+
   for (const [slug, group] of bySlug) {
     if (group.length < 2) continue;
     const keep = pickCanonicalDocument(group);
     const drop = group.filter((doc) => String(doc.id) !== String(keep.id));
     pairs.push({ collection, slug, keep, drop });
+    for (const doc of group) seen.add(String(doc.id));
   }
+
+  for (const [title, group] of byTitle) {
+    const fresh = group.filter((doc) => !seen.has(String(doc.id)));
+    if (fresh.length < 2) continue;
+    const keep = pickCanonicalDocument(fresh);
+    const drop = fresh.filter((doc) => String(doc.id) !== String(keep.id));
+    pairs.push({ collection, slug: `title:${title}`, keep, drop });
+  }
+
   return pairs;
 }
