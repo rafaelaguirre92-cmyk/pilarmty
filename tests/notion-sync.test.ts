@@ -2,6 +2,11 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { lexicalToNotionBlocks } from "../lib/lexical-to-notion";
+import {
+  fitExcerpt,
+  normalizeResourcePage,
+  normalizeTeachingPage
+} from "../lib/content";
 import { pickCanonicalDocument } from "../lib/notion-payload-link";
 import { decideSyncDirection } from "../lib/notion-payload-reconcile";
 
@@ -109,4 +114,49 @@ test("Lexical headings, paragraphs and formatting convert to Notion blocks", () 
     ((blocks[1].paragraph as { rich_text: Array<{ annotations?: { bold?: boolean } }> }).rich_text[0].annotations?.bold),
     true
   );
+});
+
+test("normalizeTeachingPage generates slug and series from titles when empty", () => {
+  const teaching = normalizeTeachingPage(
+    {
+      id: "page-teaching",
+      properties: {
+        Tipo: { select: { name: "Enseñanza" } },
+        Nombre: { title: [{ plain_text: "Cristo edifica su iglesia" }] },
+        Slug: { rich_text: [] },
+        Serie: { select: { name: "Orador Invitado" } },
+        Web: { checkbox: true }
+      }
+    },
+    { includeUnpublished: true }
+  );
+  assert.ok(teaching);
+  assert.equal(teaching.slug, "cristo-edifica-su-iglesia");
+  assert.equal(teaching.collection, "orador-invitado");
+});
+
+test("normalizeResourcePage generates slug when empty", () => {
+  const resource = normalizeResourcePage(
+    {
+      id: "page-resource",
+      properties: {
+        Tipo: { select: { name: "Articulo" } },
+        Nombre: { title: [{ plain_text: "Efesios: guía de estudio" }] },
+        Slug: { rich_text: [] },
+        Web: { checkbox: false }
+      }
+    },
+    { includeUnpublished: true }
+  );
+  assert.ok(resource);
+  assert.equal(resource.slug, "efesios-guia-de-estudio");
+});
+
+test("fitExcerpt truncates long synopses to 500 characters", () => {
+  const long = `${"palabra ".repeat(80)}final`;
+  assert.ok(long.length > 500);
+  const fitted = fitExcerpt(long);
+  assert.ok(fitted);
+  assert.ok(fitted.length <= 500);
+  assert.equal(fitted.endsWith("…"), true);
 });

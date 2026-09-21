@@ -18,7 +18,15 @@ import {
   queryResourcePages
 } from "@/lib/notion";
 import { normalizePathSegment, slugToTitle } from "@/lib/site";
+import { slugify } from "@/cms/fields/slug";
 import { siteCommunities, siteEvents } from "@/lib/content/site-data";
+
+export function fitExcerpt(value?: string) {
+  if (!value || value.length <= 500) return value;
+  const candidate = value.slice(0, 500);
+  const boundary = candidate.lastIndexOf(" ");
+  return `${candidate.slice(0, boundary > 420 ? boundary : 497).trimEnd()}…`;
+}
 import type {
   Collection,
   Community,
@@ -38,11 +46,11 @@ export function normalizeTeachingPage(
   const properties = page.properties;
   if (propertySelect(properties.Tipo) !== "Enseñanza") return null;
 
-  const slug = propertyText(properties.Slug);
-  const seriesSlug =
-    normalizePathSegment(propertySelect(properties["Sección"])) ||
-    normalizePathSegment(propertySelect(properties.Serie));
   const title = propertyText(properties.Nombre);
+  const slug = propertyText(properties.Slug) || slugify(title);
+  const seriesSlug =
+    slugify(propertySelect(properties["Sección"]) || "") ||
+    slugify(propertySelect(properties.Serie) || "");
   if (!slug || !seriesSlug || !title) return null;
   const legacy = spanishTeachings.some(
     (teaching) => teaching.legacy && teaching.slug === slug
@@ -67,7 +75,7 @@ export function normalizeTeachingPage(
     author: undefined,
     episode: propertyNumber(properties.Episodio),
     keyVerse: propertyText(properties["Pasaje bíblico"]) || undefined,
-    excerpt: propertyText(properties["Sinópsis"]) || undefined,
+    excerpt: fitExcerpt(propertyText(properties["Sinópsis"]) || undefined),
     seoDescription: propertyText(properties.SEO) || undefined,
     tags: propertyMultiSelect(properties.Etiquetas),
     image: propertyUrl(properties["Imagen URL"]),
@@ -98,8 +106,8 @@ export function normalizeResourcePage(
   }
   if (!options.includeUnpublished && !propertyCheckbox(properties.Web)) return null;
 
-  const slug = propertyText(properties.Slug);
   const title = propertyText(properties.Nombre);
+  const slug = propertyText(properties.Slug) || slugify(title);
   if (!slug || !title) return null;
 
   return {
@@ -108,7 +116,7 @@ export function normalizeResourcePage(
     title,
     locale: "es",
     kind: notionType === "Articulo" ? "articulo" : "contenido-pilar",
-    excerpt: propertyText(properties["Sinópsis"]) || undefined,
+    excerpt: fitExcerpt(propertyText(properties["Sinópsis"]) || undefined),
     seoDescription: propertyText(properties.SEO) || undefined,
     author: undefined,
     date: propertyDate(properties.Fecha),

@@ -145,16 +145,19 @@ async function save(
 async function confirmInNotion(
   page: Awaited<ReturnType<typeof getNotionPage>>,
   collection: EditorialCollection,
-  payloadId: number | string
+  payloadId: number | string,
+  options: { slug?: string } = {}
 ) {
   if (!notionWritebackIsEnabled()) return page;
   const properties = page.properties;
   const cmsUrl = `${(process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, "")}/admin/collections/${collection}/${payloadId}`;
+  const slugMissing = Boolean(options.slug) && !propertyText(properties.Slug);
   if (
     propertyText(properties["Payload ID"]) === String(payloadId) &&
     propertyUrl(properties["CMS URL"]) === cmsUrl &&
     propertySelect(properties["Estado de sincronización"]) === "Sincronizado" &&
-    propertySelect(properties["Origen del último cambio"]) === "Notion"
+    propertySelect(properties["Origen del último cambio"]) === "Notion" &&
+    !slugMissing
   ) {
     return page;
   }
@@ -164,7 +167,10 @@ async function confirmInNotion(
       "CMS URL": { url: cmsUrl },
       "Estado de sincronización": { select: { name: "Sincronizado" } },
       "Última sincronización": { date: { start: new Date().toISOString() } },
-      "Origen del último cambio": { select: { name: "Notion" } }
+      "Origen del último cambio": { select: { name: "Notion" } },
+      ...(slugMissing && options.slug
+        ? { Slug: { rich_text: [{ type: "text", text: { content: options.slug } }] } }
+        : {})
     });
   } catch (error) {
     console.error("Notion metadata writeback failed", error);
@@ -204,7 +210,7 @@ export async function syncNotionPageToPayload(payload: Payload, pageId: string) 
         skipped: "invalid_teaching" as const,
         title: propertyText(page.properties.Nombre) || undefined,
         notionPageId: page.id,
-        detail: "Revisa Nombre, Slug y Serie/Sección en Notion."
+        detail: "Revisa Nombre y Serie/Sección en Notion."
       };
     }
     const author = await authorRelation(payload, page);
@@ -227,7 +233,7 @@ export async function syncNotionPageToPayload(payload: Payload, pageId: string) 
       seo: { description: fitSeoDescription(item.seoDescription) },
       _status: status
     });
-    await confirmInNotion(page, collection, doc.id);
+    await confirmInNotion(page, collection, doc.id, { slug: item.slug });
     return { collection, id: doc.id, warnings };
   }
 
@@ -237,7 +243,7 @@ export async function syncNotionPageToPayload(payload: Payload, pageId: string) 
       skipped: "invalid_resource" as const,
       title: propertyText(page.properties.Nombre) || undefined,
       notionPageId: page.id,
-      detail: "Revisa Nombre, Slug y Tipo (Articulo / Pilar Content) en Notion."
+      detail: "Revisa Nombre y Tipo (Articulo / Pilar Content) en Notion."
     };
   }
   const author = await authorRelation(payload, page);
@@ -254,6 +260,6 @@ export async function syncNotionPageToPayload(payload: Payload, pageId: string) 
     seo: { description: fitSeoDescription(item.seoDescription) },
     _status: status
   });
-  await confirmInNotion(page, collection, doc.id);
+  await confirmInNotion(page, collection, doc.id, { slug: item.slug });
   return { collection, id: doc.id, warnings };
 }
