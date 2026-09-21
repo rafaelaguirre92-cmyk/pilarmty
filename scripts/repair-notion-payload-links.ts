@@ -161,7 +161,7 @@ for (const collection of ["teachings", "resources"] as const) {
 }
 
 if (notionIsConfigured() && write) {
-  const pages = await queryResourcePages({ fresh: true });
+  const pages = await queryResourcePages();
   for (const page of pages) {
     try {
       const result = await syncNotionPageToPayload(payload, page.id);
