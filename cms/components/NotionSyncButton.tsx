@@ -8,8 +8,10 @@ type Summary = {
   payloadToNotion: number;
   notionToPayload: number;
   createdInNotion: number;
+  conflictsResolved?: number;
   unchanged: number;
   skipped: number;
+  skippedReasons?: Record<string, number>;
   errors: Array<{
     collection?: string;
     id?: number | string;
@@ -18,6 +20,13 @@ type Summary = {
     message: string;
   }>;
   finishedAt: string;
+};
+
+const skipLabels: Record<string, string> = {
+  unsupported_type: "tipo no soportado",
+  not_web: "sin Web",
+  invalid_teaching: "enseñanza incompleta",
+  invalid_resource: "artículo incompleto"
 };
 
 export function NotionSyncButton({ enabled }: { enabled: boolean }) {
@@ -43,6 +52,12 @@ export function NotionSyncButton({ enabled }: { enabled: boolean }) {
     }
   }
 
+  const skipDetails = summary?.skippedReasons
+    ? Object.entries(summary.skippedReasons)
+        .map(([reason, count]) => `${count} ${skipLabels[reason] || reason}`)
+        .join(", ")
+    : null;
+
   return (
     <div className="creator-sync-action">
       <Button
@@ -63,7 +78,10 @@ export function NotionSyncButton({ enabled }: { enabled: boolean }) {
           <strong>{summary.errors.length ? "Sincronización terminada con avisos" : "Sincronización completada"}</strong>
           <p>
             {summary.payloadToNotion + summary.createdInNotion} enviados a Notion · {summary.notionToPayload} importados a Payload · {summary.unchanged} sin cambios
+            {summary.conflictsResolved ? ` · ${summary.conflictsResolved} conflictos a favor de Payload` : ""}
+            {summary.skipped ? ` · ${summary.skipped} omitidos` : ""}
           </p>
+          {skipDetails ? <p>Omitidos: {skipDetails}.</p> : null}
           {summary.errors.length ? <p>{summary.errors.length} elementos requieren revisión.</p> : null}
           {summary.errors.length ? (
             <details className="creator-sync-errors">
@@ -72,7 +90,10 @@ export function NotionSyncButton({ enabled }: { enabled: boolean }) {
                 {summary.errors.map((item, index) => (
                   <li key={`${item.notionPageId || item.id || "error"}-${index}`}>
                     <strong>{item.title || "Elemento sin título"}</strong>
-                    <span>{item.collection || ""}{item.notionPageId ? ` · Notion ${item.notionPageId}` : ""}</span>
+                    <span>
+                      {item.collection || ""}
+                      {item.notionPageId ? ` · Notion ${item.notionPageId}` : ""}
+                    </span>
                     <code>{item.message}</code>
                   </li>
                 ))}

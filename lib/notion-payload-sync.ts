@@ -15,10 +15,14 @@ import {
   type NotionPage
 } from "@/lib/notion";
 import { authorIdForNotionRelation } from "@/lib/notion-authors-sync";
+import {
+  findLinkedDocument,
+  type SyncCollection
+} from "@/lib/notion-payload-link";
 import { notionBlocksToLexical } from "@/lib/notion-to-lexical";
 import { slugToTitle } from "@/lib/site";
 
-type EditorialCollection = "teachings" | "resources";
+type EditorialCollection = SyncCollection;
 
 function fitSeoDescription(value?: string) {
   if (!value || value.length <= 170) return value;
@@ -32,30 +36,12 @@ async function findOne(payload: Payload, collection: string, where: Record<strin
     collection: collection as never,
     where: where as never,
     locale: "es",
+    draft: true,
     depth: 0,
     limit: 1,
     overrideAccess: true
   });
   return result.docs[0] as { id: number | string } | undefined;
-}
-
-async function existingNotionDoc(payload: Payload, collection: EditorialCollection, page: NotionPage) {
-  const directlyLinked =
-    (await findOne(payload, collection, { notionPageId: { equals: page.id } })) ||
-    (await findOne(payload, collection, { migrationKey: { equals: `notion:${page.id}` } }));
-  if (directlyLinked) return directlyLinked;
-
-  // Notion page IDs change when the source database moves to another
-  // workspace. Payload ID remains stable and prevents duplicate imports.
-  const payloadId = propertyText(page.properties["Payload ID"]);
-  const slug = propertyText(page.properties.Slug);
-  if (!/^\d+$/.test(payloadId) || !slug) return undefined;
-  return findOne(payload, collection, {
-    and: [
-      { id: { equals: Number(payloadId) } },
-      { slug: { equals: slug } }
-    ]
-  });
 }
 
 async function namedRelation(
@@ -113,7 +99,7 @@ async function save(
   page: NotionPage,
   data: Record<string, unknown>
 ) {
-  const existing = await existingNotionDoc(payload, collection, page);
+  const existing = await findLinkedDocument(payload, collection, page);
   const common = {
     ...data,
     migrationKey: `notion:${page.id}`,
@@ -147,7 +133,7 @@ async function save(
   } catch (error) {
     // A second webhook or cron worker may have created this page between the
     // lookup above and the insert. Re-read the unique link and update it.
-    const concurrent = await existingNotionDoc(payload, collection, page);
+    const concurrent = await findLinkedDocument(payload, collection, page);
     if (!concurrent) throw error;
     return payload.update({
       collection,
@@ -177,13 +163,18 @@ async function confirmInNotion(
   ) {
     return page;
   }
-  return updateNotionPageProperties(page.id, {
-    "Payload ID": { rich_text: [{ type: "text", text: { content: String(payloadId) } }] },
-    "CMS URL": { url: cmsUrl },
-    "Estado de sincronización": { select: { name: "Sincronizado" } },
-    "Última sincronización": { date: { start: new Date().toISOString() } },
-    "Origen del último cambio": { select: { name: "Notion" } }
-  });
+  try {
+    return await updateNotionPageProperties(page.id, {
+      "Payload ID": { rich_text: [{ type: "text", text: { content: String(payloadId) } }] },
+      "CMS URL": { url: cmsUrl },
+      "Estado de sincronización": { select: { name: "Sincronizado" } },
+      "Última sincronización": { date: { start: new Date().toISOString() } },
+      "Origen del último cambio": { select: { name: "Notion" } }
+    });
+  } catch (error) {
+    console.error("Notion metadata writeback failed", error);
+    return page;
+  }
 }
 
 async function finishNotionImport(

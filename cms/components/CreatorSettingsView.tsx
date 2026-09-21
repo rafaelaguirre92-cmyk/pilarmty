@@ -80,7 +80,9 @@ export async function CreatorSettingsView(props: AdminViewServerProps) {
                 {cronConfigured
                   ? "Se ejecuta automáticamente una vez al día. "
                   : "La sincronización manual está disponible; el horario diario se activará al configurar CRON_SECRET en Vercel. "}
-                Si ambos lados cambiaron, prevalece Payload; si únicamente cambió Notion, se importa esa versión.
+                La carga inicial viene de Notion. Después, Payload es la fuente de verdad:
+                lo nuevo en Notion se importa, lo nuevo en Payload se crea en Notion,
+                y si hay incidencia prevalece Payload.
               </p>
               <dl className="creator-sync-facts">
                 <div><dt>Última sincronización</dt><dd>{formatDate(latest)}</dd></div>

@@ -1,14 +1,116 @@
 import type { Payload } from "payload";
-import type { SyncCollection, SyncDocument } from "@/cms/hooks/notion-sync";
-import { notionIsConfigured, propertySelect, propertyText, queryResourcePages } from "@/lib/notion";
-import { syncNotionPageToPayload } from "@/lib/notion-payload-sync";
+
+import {
+  pushPayloadDocumentToNotion,
+  type SyncCollection,
+  type SyncDocument
+} from "@/cms/hooks/notion-sync";
 import { syncNotionAuthorsToPayload } from "@/lib/notion-authors-sync";
+import {
+  getNotionPage,
+  notionIsConfigured,
+  notionWritebackIsEnabled,
+  propertyDate,
+  propertySelect,
+  propertyText,
+  queryResourcePages,
+  type NotionPage
+} from "@/lib/notion";
+import {
+  findLinkedDocument,
+  type LinkedDocument
+} from "@/lib/notion-payload-link";
+import { syncNotionPageToPayload } from "@/lib/notion-payload-sync";
 
-export type SyncDirection = "notion-to-payload";
+type ReconcileDocument = LinkedDocument & SyncDocument;
 
-export function decideSyncDirection(_doc: SyncDocument, _notionUpdatedAt?: string): SyncDirection {
-  // Equal timestamps do not prove that an older importer copied every field.
-  return "notion-to-payload";
+export type SyncDirection =
+  | "payload-to-notion"
+  | "notion-to-payload"
+  | "conflict"
+  | "unchanged";
+
+function notionIsNewer(doc: ReconcileDocument, notionUpdatedAt?: string) {
+  return (
+    Boolean(notionUpdatedAt) &&
+    (!doc.sourceUpdatedAt ||
+      Date.parse(notionUpdatedAt!) > Date.parse(doc.sourceUpdatedAt) + 500)
+  );
+}
+
+export function decideSyncDirection(
+  doc: ReconcileDocument,
+  notionUpdatedAt?: string
+): SyncDirection {
+  const payloadHasPriority =
+    doc.lastSyncSource === "payload" &&
+    (doc.syncStatus === "pending" ||
+      doc.syncStatus === "error" ||
+      doc.syncStatus === "conflict");
+
+  const notionChanged = notionIsNewer(doc, notionUpdatedAt);
+
+  if (payloadHasPriority && notionChanged) return "conflict";
+  if (payloadHasPriority) return "payload-to-notion";
+
+  if (doc.syncStatus === "error" && doc.lastSyncSource === "notion") {
+    return "notion-to-payload";
+  }
+
+  return notionChanged ? "notion-to-payload" : "unchanged";
+}
+
+function collectionForPage(page: NotionPage): SyncCollection | undefined {
+  const type = propertySelect(page.properties.Tipo);
+  if (type === "Enseñanza") return "teachings";
+  if (type === "Articulo" || type === "Pilar Content") return "resources";
+  return undefined;
+}
+
+async function markConflict(
+  payload: Payload,
+  collection: SyncCollection,
+  doc: ReconcileDocument
+) {
+  await payload.update({
+    collection,
+    id: doc.id,
+    data: {
+      syncStatus: "conflict",
+      lastSyncSource: "payload",
+      syncError: "Incidencia detectada: se conservó la versión de Payload."
+    } as never,
+    locale: "es",
+    draft: true,
+    depth: 0,
+    overrideAccess: true,
+    context: { skipNotionSync: true, skipAutoTranslate: true }
+  });
+}
+
+async function unlinkedPendingDocuments(payload: Payload, collection: SyncCollection) {
+  const result = await payload.find({
+    collection,
+    where: {
+      and: [
+        { notionPageId: { exists: false } },
+        {
+          or: [
+            { syncStatus: { equals: "pending" } },
+            { syncStatus: { equals: "error" } },
+            { syncStatus: { equals: "conflict" } }
+          ]
+        },
+        { lastSyncSource: { equals: "payload" } }
+      ]
+    },
+    locale: "es",
+    draft: true,
+    depth: 1,
+    limit: 1000,
+    overrideAccess: true
+  });
+  return result.docs as unknown as ReconcileDocument[];
 }
 
 export type NotionPayloadSyncSummary = {
@@ -18,46 +120,173 @@ export type NotionPayloadSyncSummary = {
   payloadToNotion: number;
   notionToPayload: number;
   createdInNotion: number;
+  conflictsResolved: number;
   unchanged: number;
   skipped: number;
-  errors: Array<{ collection?: SyncCollection; id?: number | string; notionPageId?: string; title?: string; message: string }>;
+  skippedReasons: Record<string, number>;
+  errors: Array<{
+    collection?: SyncCollection;
+    id?: number | string;
+    notionPageId?: string;
+    title?: string;
+    message: string;
+  }>;
 };
 
 let activeRun: Promise<NotionPayloadSyncSummary> | null = null;
 
+function bumpSkip(
+  summary: Omit<NotionPayloadSyncSummary, "finishedAt">,
+  reason: string
+) {
+  summary.skipped += 1;
+  summary.skippedReasons[reason] = (summary.skippedReasons[reason] || 0) + 1;
+}
+
 export async function reconcileNotionPage(payload: Payload, pageId: string) {
-  const result = await syncNotionPageToPayload(payload, pageId);
-  return { direction: "notion-to-payload" as const, result };
+  const page = await getNotionPage(pageId);
+  const collection = collectionForPage(page);
+  if (!collection) return { direction: "unchanged" as const, skipped: "unsupported_type" as const };
+
+  const doc = await findLinkedDocument(payload, collection, page);
+  if (!doc) {
+    const result = await syncNotionPageToPayload(payload, page.id);
+    return { direction: "notion-to-payload" as const, result };
+  }
+
+  const origin = propertySelect(page.properties["Origen del último cambio"]);
+  const remoteSyncedAt = propertyDate(page.properties["Última sincronización"]);
+  const isOwnRecentWrite =
+    origin === "Payload" &&
+    Boolean(remoteSyncedAt && page.last_edited_time) &&
+    Date.parse(page.last_edited_time!) <= Date.parse(remoteSyncedAt!) + 120_000;
+  if (isOwnRecentWrite) {
+    return { collection, id: doc.id, direction: "unchanged" as const };
+  }
+
+  const direction = decideSyncDirection(doc, page.last_edited_time);
+  if (direction === "conflict" || direction === "payload-to-notion") {
+    if (!notionWritebackIsEnabled()) {
+      throw new Error("La escritura bidireccional con Notion no está habilitada.");
+    }
+    if (direction === "conflict") {
+      await markConflict(payload, collection, doc);
+    }
+    await pushPayloadDocumentToNotion(payload, collection, {
+      ...doc,
+      syncStatus: direction === "conflict" ? "conflict" : doc.syncStatus
+    });
+    return {
+      collection,
+      id: doc.id,
+      direction: "payload-to-notion" as const,
+      conflict: direction === "conflict"
+    };
+  }
+  if (direction === "notion-to-payload") {
+    await syncNotionPageToPayload(payload, page.id);
+  }
+  return { collection, id: doc.id, direction };
 }
 
 async function executeSync(payload: Payload): Promise<NotionPayloadSyncSummary> {
   if (!notionIsConfigured()) throw new Error("Notion no está configurado.");
+
   const summary: NotionPayloadSyncSummary = {
-    runId: crypto.randomUUID(), startedAt: new Date().toISOString(), finishedAt: "",
-    payloadToNotion: 0, notionToPayload: 0, createdInNotion: 0, unchanged: 0, skipped: 0, errors: []
+    runId: crypto.randomUUID(),
+    startedAt: new Date().toISOString(),
+    finishedAt: "",
+    payloadToNotion: 0,
+    notionToPayload: 0,
+    createdInNotion: 0,
+    conflictsResolved: 0,
+    unchanged: 0,
+    skipped: 0,
+    skippedReasons: {},
+    errors: []
   };
+
   const pages = await queryResourcePages();
   await syncNotionAuthorsToPayload(payload);
+  const linkedPayloadIds = new Set<string>();
+
   for (const page of pages) {
-    const type = propertySelect(page.properties.Tipo);
-    const collection = type === "Enseñanza" ? "teachings" :
-      type === "Articulo" || type === "Pilar Content" ? "resources" : undefined;
-    if (!collection) { summary.skipped += 1; continue; }
+    const collection = collectionForPage(page);
+    if (!collection) {
+      bumpSkip(summary, "unsupported_type");
+      continue;
+    }
+
     try {
-      const result = await syncNotionPageToPayload(payload, page.id);
-      if ("id" in result) summary.notionToPayload += 1;
-      else throw new Error(`No se importó el contenido: ${result.skipped}. Revisa Nombre, Slug y Serie en Notion.`);
+      const doc = await findLinkedDocument(payload, collection, page);
+      if (!doc) {
+        const result = await syncNotionPageToPayload(payload, page.id);
+        if ("id" in result) summary.notionToPayload += 1;
+        else bumpSkip(summary, result.skipped);
+        continue;
+      }
+      linkedPayloadIds.add(`${collection}:${doc.id}`);
+
+      const direction = decideSyncDirection(doc, page.last_edited_time);
+      if (direction === "conflict" || direction === "payload-to-notion") {
+        if (!notionWritebackIsEnabled()) {
+          throw new Error("La escritura bidireccional con Notion no está habilitada.");
+        }
+        if (direction === "conflict") {
+          await markConflict(payload, collection, doc);
+          summary.conflictsResolved += 1;
+        }
+        await pushPayloadDocumentToNotion(payload, collection, {
+          ...doc,
+          syncStatus: direction === "conflict" ? "conflict" : doc.syncStatus
+        });
+        summary.payloadToNotion += 1;
+      } else if (direction === "notion-to-payload") {
+        const result = await syncNotionPageToPayload(payload, page.id);
+        if ("id" in result) summary.notionToPayload += 1;
+        else bumpSkip(summary, result.skipped);
+      } else {
+        summary.unchanged += 1;
+      }
     } catch (error) {
-      summary.errors.push({ collection, notionPageId: page.id,
+      summary.errors.push({
+        collection,
+        notionPageId: page.id,
         title: propertyText(page.properties.Nombre) || undefined,
-        message: error instanceof Error ? error.message : String(error) });
+        message: error instanceof Error ? error.message : String(error)
+      });
     }
   }
+
+  if (notionWritebackIsEnabled()) {
+    for (const collection of ["teachings", "resources"] as const) {
+      const pending = await unlinkedPendingDocuments(payload, collection);
+      for (const doc of pending) {
+        if (linkedPayloadIds.has(`${collection}:${doc.id}`)) continue;
+        try {
+          await pushPayloadDocumentToNotion(payload, collection, doc);
+          summary.createdInNotion += 1;
+        } catch (error) {
+          summary.errors.push({
+            collection,
+            id: doc.id,
+            title: typeof doc.title === "string" ? doc.title : undefined,
+            message: error instanceof Error ? error.message : String(error)
+          });
+        }
+      }
+    }
+  }
+
   summary.finishedAt = new Date().toISOString();
   return summary;
 }
 
 export async function runNotionPayloadSync(payload: Payload) {
-  if (!activeRun) activeRun = executeSync(payload).finally(() => { activeRun = null; });
+  if (!activeRun) {
+    activeRun = executeSync(payload).finally(() => {
+      activeRun = null;
+    });
+  }
   return activeRun;
 }
