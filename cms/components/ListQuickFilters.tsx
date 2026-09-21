@@ -46,20 +46,24 @@ export function ListQuickFilters() {
   useEffect(() => {
     if (!isCollection(collection)) return;
 
+    let frame = 0;
     const findTarget = () => {
-      const list = document.querySelector<HTMLElement>(".collection-list");
-      const actions = list?.querySelector<HTMLElement>(".search-bar__actions");
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const list = document.querySelector<HTMLElement>(".collection-list");
+        const actions = list?.querySelector<HTMLElement>(".search-bar__actions");
 
-      if (list) list.dataset.creatorPresets = collection;
-      if (actions) {
-        setTarget(actions);
-        if (isTrash) {
-          const emptyTrashBtn = document.getElementById("empty-trash-button");
-          if (emptyTrashBtn && !actions.contains(emptyTrashBtn)) {
-            actions.appendChild(emptyTrashBtn);
+        if (list) list.dataset.creatorPresets = collection;
+        if (actions) {
+          setTarget((current) => (current === actions ? current : actions));
+          if (isTrash) {
+            const emptyTrashBtn = document.getElementById("empty-trash-button");
+            if (emptyTrashBtn && !actions.contains(emptyTrashBtn)) {
+              actions.appendChild(emptyTrashBtn);
+            }
           }
         }
-      }
+      });
     };
 
     findTarget();
@@ -67,6 +71,7 @@ export function ListQuickFilters() {
     observer.observe(document.body, { childList: true, subtree: true });
 
     return () => {
+      cancelAnimationFrame(frame);
       observer.disconnect();
       document.querySelector<HTMLElement>(".collection-list")?.removeAttribute("data-creator-presets");
     };

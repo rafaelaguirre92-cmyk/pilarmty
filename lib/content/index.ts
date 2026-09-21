@@ -39,9 +39,11 @@ export function normalizeTeachingPage(
   if (propertySelect(properties.Tipo) !== "Enseñanza") return null;
 
   const slug = propertyText(properties.Slug);
-  const collection = normalizePathSegment(propertySelect(properties.Serie));
+  const seriesSlug =
+    normalizePathSegment(propertySelect(properties["Sección"])) ||
+    normalizePathSegment(propertySelect(properties.Serie));
   const title = propertyText(properties.Nombre);
-  if (!slug || !collection || !title) return null;
+  if (!slug || !seriesSlug || !title) return null;
   const legacy = spanishTeachings.some(
     (teaching) => teaching.legacy && teaching.slug === slug
   );
@@ -51,11 +53,11 @@ export function normalizeTeachingPage(
   return {
     notionId: page.id,
     slug,
-    collection,
+    collection: seriesSlug,
     collectionName:
       propertySelect(properties.Serie) ||
-      fallbackCollections.find((item) => item.slug === collection)?.name ||
-      slugToTitle(collection),
+      fallbackCollections.find((item) => item.slug === seriesSlug)?.name ||
+      slugToTitle(seriesSlug),
     title,
     locale: "es",
     date: propertyDate(properties.Fecha),
@@ -78,12 +80,19 @@ export function normalizeTeachingPage(
   };
 }
 
+function notionResourceType(value: string) {
+  const normalized = value.normalize("NFC").trim().toLocaleLowerCase("es-MX");
+  if (normalized === "articulo" || normalized === "artículo") return "Articulo";
+  if (normalized === "pilar content" || normalized === "contenido pilar") return "Pilar Content";
+  return value;
+}
+
 export function normalizeResourcePage(
   page: Awaited<ReturnType<typeof queryResourcePages>>[number],
   options: { includeUnpublished?: boolean } = {}
 ): Resource | null {
   const properties = page.properties;
-  const notionType = propertySelect(properties.Tipo);
+  const notionType = notionResourceType(propertySelect(properties.Tipo));
   if (notionType !== "Articulo" && notionType !== "Pilar Content") {
     return null;
   }

@@ -202,14 +202,24 @@ async function finishNotionImport(
 
 export async function syncNotionPageToPayload(payload: Payload, pageId: string) {
   const page = await getNotionPage(pageId);
-  const notionType = propertySelect(page.properties.Tipo);
+  const rawType = propertySelect(page.properties.Tipo);
+  const normalizedType = rawType.normalize("NFC").trim().toLocaleLowerCase("es-MX");
   const collection: EditorialCollection | undefined =
-    notionType === "Enseñanza"
+    rawType === "Enseñanza"
       ? "teachings"
-      : notionType === "Articulo" || notionType === "Pilar Content"
+      : normalizedType === "articulo" ||
+          normalizedType === "artículo" ||
+          rawType === "Pilar Content" ||
+          normalizedType === "contenido pilar"
         ? "resources"
         : undefined;
-  if (!collection) return { skipped: "unsupported_type" as const };
+  if (!collection) {
+    return {
+      skipped: "unsupported_type" as const,
+      title: propertyText(page.properties.Nombre) || undefined,
+      notionPageId: page.id
+    };
+  }
 
   const status = propertyCheckbox(page.properties.Web) ? "published" : "draft";
 
@@ -217,7 +227,14 @@ export async function syncNotionPageToPayload(payload: Payload, pageId: string) 
   const body = await notionBlocksToLexical(await getPageBlocks(pageId), undefined, warnings);
   if (collection === "teachings") {
     const item = normalizeTeachingPage(page, { includeUnpublished: true });
-    if (!item) return { skipped: "invalid_teaching" as const };
+    if (!item) {
+      return {
+        skipped: "invalid_teaching" as const,
+        title: propertyText(page.properties.Nombre) || undefined,
+        notionPageId: page.id,
+        detail: "Revisa Nombre, Slug y Serie/Sección en Notion."
+      };
+    }
     const author = await authorRelation(payload, page);
     const doc = await save(payload, collection, page, {
       title: item.title,
@@ -245,7 +262,14 @@ export async function syncNotionPageToPayload(payload: Payload, pageId: string) 
   }
 
   const item = normalizeResourcePage(page, { includeUnpublished: true });
-  if (!item) return { skipped: "invalid_resource" as const };
+  if (!item) {
+    return {
+      skipped: "invalid_resource" as const,
+      title: propertyText(page.properties.Nombre) || undefined,
+      notionPageId: page.id,
+      detail: "Revisa Nombre, Slug y Tipo (Articulo / Pilar Content) en Notion."
+    };
+  }
   const author = await authorRelation(payload, page);
   const doc = await save(payload, collection, page, {
     title: item.title,

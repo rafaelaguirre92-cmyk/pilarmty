@@ -62,8 +62,16 @@ export function decideSyncDirection(
 
 function collectionForPage(page: NotionPage): SyncCollection | undefined {
   const type = propertySelect(page.properties.Tipo);
+  const normalized = type.normalize("NFC").trim().toLocaleLowerCase("es-MX");
   if (type === "Enseñanza") return "teachings";
-  if (type === "Articulo" || type === "Pilar Content") return "resources";
+  if (
+    normalized === "articulo" ||
+    normalized === "artículo" ||
+    type === "Pilar Content" ||
+    normalized === "contenido pilar"
+  ) {
+    return "resources";
+  }
   return undefined;
 }
 
@@ -137,10 +145,29 @@ let activeRun: Promise<NotionPayloadSyncSummary> | null = null;
 
 function bumpSkip(
   summary: Omit<NotionPayloadSyncSummary, "finishedAt">,
-  reason: string
+  reason: string,
+  meta?: { collection?: SyncCollection; notionPageId?: string; title?: string; detail?: string }
 ) {
   summary.skipped += 1;
   summary.skippedReasons[reason] = (summary.skippedReasons[reason] || 0) + 1;
+  if (
+    reason === "invalid_teaching" ||
+    reason === "invalid_resource" ||
+    reason === "unsupported_type"
+  ) {
+    summary.errors.push({
+      collection: meta?.collection,
+      notionPageId: meta?.notionPageId,
+      title: meta?.title,
+      message:
+        meta?.detail ||
+        (reason === "unsupported_type"
+          ? "Tipo de Notion no soportado."
+          : reason === "invalid_teaching"
+            ? "Enseñanza incompleta: revisa Nombre, Slug y Serie/Sección."
+            : "Artículo incompleto: revisa Nombre, Slug y Tipo.")
+    });
+  }
 }
 
 export async function reconcileNotionPage(payload: Payload, pageId: string) {
@@ -213,7 +240,10 @@ async function executeSync(payload: Payload): Promise<NotionPayloadSyncSummary> 
   for (const page of pages) {
     const collection = collectionForPage(page);
     if (!collection) {
-      bumpSkip(summary, "unsupported_type");
+      bumpSkip(summary, "unsupported_type", {
+        notionPageId: page.id,
+        title: propertyText(page.properties.Nombre) || undefined
+      });
       continue;
     }
 
@@ -222,7 +252,14 @@ async function executeSync(payload: Payload): Promise<NotionPayloadSyncSummary> 
       if (!doc) {
         const result = await syncNotionPageToPayload(payload, page.id);
         if ("id" in result) summary.notionToPayload += 1;
-        else bumpSkip(summary, result.skipped);
+        else {
+          bumpSkip(summary, result.skipped, {
+            collection,
+            notionPageId: "notionPageId" in result ? result.notionPageId : page.id,
+            title: "title" in result ? result.title : propertyText(page.properties.Nombre) || undefined,
+            detail: "detail" in result ? result.detail : undefined
+          });
+        }
         continue;
       }
       linkedPayloadIds.add(`${collection}:${doc.id}`);
@@ -244,7 +281,14 @@ async function executeSync(payload: Payload): Promise<NotionPayloadSyncSummary> 
       } else if (direction === "notion-to-payload") {
         const result = await syncNotionPageToPayload(payload, page.id);
         if ("id" in result) summary.notionToPayload += 1;
-        else bumpSkip(summary, result.skipped);
+        else {
+          bumpSkip(summary, result.skipped, {
+            collection,
+            notionPageId: "notionPageId" in result ? result.notionPageId : page.id,
+            title: "title" in result ? result.title : propertyText(page.properties.Nombre) || undefined,
+            detail: "detail" in result ? result.detail : undefined
+          });
+        }
       } else {
         summary.unchanged += 1;
       }
