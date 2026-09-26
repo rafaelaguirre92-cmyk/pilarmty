@@ -258,7 +258,7 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
             disabled={metadataLoading || mergingMetadataKey !== null}
             onClick={loadMetadataDuplicates}
             type="button"
-            className="pilar-sync-btn pilar-sync-btn--secondary"
+            className="pilar-sync-btn"
           >
             {metadataLoading ? "Buscando…" : "Buscar duplicados"}
           </Button>

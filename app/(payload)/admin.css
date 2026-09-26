@@ -219,10 +219,6 @@ body:has(.template-default),
   box-shadow: 0 0 16px rgba(139, 168, 146, 0.25) !important;
 }
 
-.pilar-sync-btn--secondary {
-  background: transparent !important;
-}
-
 .pilar-sync-btn__label,
 .pilar-sync-btn__spinner-wrap {
   display: inline-flex;
