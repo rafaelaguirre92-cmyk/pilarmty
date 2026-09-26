@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { getTopicSummaries, isTopicIndexable } from "../lib/topics";
+import {
+  getPublishedTopicSlugs,
+  getTopicSummaries,
+  isTopicIndexable
+} from "../lib/topics";
 import type { Teaching } from "../lib/types";
 
 function teaching(slug: string, tag: string): Teaching {
@@ -41,6 +45,7 @@ test("a topic with fewer than three contents stays unpublished by default", () =
   const [topic] = getTopicSummaries([teaching("uno", "Gracia")], []);
 
   assert.equal(isTopicIndexable(topic), false);
+  assert.equal(getPublishedTopicSlugs([teaching("uno", "Gracia")], []).has("gracia"), false);
 });
 
 test("a manual unpublish overrides automatic publication", () => {

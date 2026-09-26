@@ -223,6 +223,24 @@ export function isTopicIndexable(topic: TopicSummary) {
   return topic.count >= TOPIC_INDEX_MIN_CONTENT || (topic.count > 0 && topic.manuallyPublished);
 }
 
+export function getPublishedTopicSlugs(
+  teachings: Teaching[],
+  resources: Resource[],
+  manuallyPublishedSlugs: ReadonlySet<string> = new Set(),
+  manuallyUnpublishedSlugs: ReadonlySet<string> = new Set()
+) {
+  return new Set(
+    getTopicSummaries(
+      teachings,
+      resources,
+      manuallyPublishedSlugs,
+      manuallyUnpublishedSlugs
+    )
+      .filter(isTopicIndexable)
+      .map((topic) => topic.slug)
+  );
+}
+
 export function topicDescription(topic: string, locale: Locale) {
   if (locale === "es") {
     return `Enseñanzas y recursos de Iglesia Pilar sobre ${topic}: para comprender la Palabra y vivir el evangelio con fidelidad.`;

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 
 import { TopicPage } from "@/components/topics-page";
 import { getResources, getTeachings, getTopicPublicationOverrides } from "@/lib/content";
@@ -54,7 +54,7 @@ export default async function Page({ params }: Props) {
     getTopicPublicationOverrides()
   ]);
   const topic = getTopicContent(tema, teachings, resources, publication.published, publication.unpublished);
-  if (!topic || !isTopicIndexable(topic)) notFound();
+  if (!topic || !isTopicIndexable(topic)) redirect("/recursos/temas");
 
   const description = topicDescription(topic.name, "es");
   const jsonLd = {

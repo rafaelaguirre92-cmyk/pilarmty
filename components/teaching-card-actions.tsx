@@ -6,13 +6,16 @@ type TeachingCardActionsProps = {
   href: string;
   title: string;
   locale: Locale;
+  contentType?: "resource" | "teaching";
 };
 
 export function TeachingCardActions({
   href,
   title,
-  locale
+  locale,
+  contentType = "teaching"
 }: TeachingCardActionsProps) {
+  const isResource = contentType === "resource";
   async function handleShare() {
     const origin =
       typeof window !== "undefined"
@@ -39,7 +42,11 @@ export function TeachingCardActions({
       <button
         type="button"
         className="teaching-card-share"
-        aria-label={locale === "es" ? "Compartir enseñanza" : "Share teaching"}
+        aria-label={
+          locale === "es"
+            ? isResource ? "Compartir recurso" : "Compartir enseñanza"
+            : isResource ? "Share resource" : "Share teaching"
+        }
         onClick={handleShare}
       >
         <svg viewBox="0 0 24 24" aria-hidden="true">

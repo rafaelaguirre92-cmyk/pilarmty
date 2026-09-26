@@ -13,12 +13,14 @@ import { extractArticleHeadings } from "@/lib/article-headings";
 import { extractBibleReferences } from "@/lib/bible";
 import {
   getCollection,
+  getResources,
   getTeaching,
-  getTeachings
+  getTeachings,
+  getTopicPublicationOverrides
 } from "@/lib/content";
 import { formatDate, localePath } from "@/lib/site";
 import { spotifyEpisodeEmbedUrl } from "@/lib/spotify";
-import { topicSlug } from "@/lib/topics";
+import { getPublishedTopicSlugs, topicSlug } from "@/lib/topics";
 import type { Locale } from "@/lib/types";
 
 function youtubeVideoId(value?: string) {
@@ -64,10 +66,12 @@ export async function TeachingPage({
   collectionSlug: string;
   slug: string;
 }) {
-  const [teaching, collection, allTeachings] = await Promise.all([
+  const [teaching, collection, allTeachings, allResources, publication] = await Promise.all([
     getTeaching(locale, collectionSlug, slug),
     getCollection(locale, collectionSlug),
-    getTeachings(locale)
+    getTeachings(locale),
+    getResources(locale),
+    getTopicPublicationOverrides()
   ]);
   if (!teaching || !collection) return null;
 
@@ -95,6 +99,12 @@ export async function TeachingPage({
     blocks: teaching.blocks,
     body: teaching.body
   });
+  const publishedTopicSlugs = getPublishedTopicSlugs(
+    allTeachings,
+    allResources,
+    publication.published,
+    publication.unpublished
+  );
 
   const authorHref = teaching.author
     ? teaching.authorUrl ||
@@ -209,7 +219,9 @@ export async function TeachingPage({
                           <Link
                             href={localePath(
                               locale,
-                              `/recursos/temas/${topicSlug(tag)}`
+                              publishedTopicSlugs.has(topicSlug(tag))
+                                ? `/recursos/temas/${topicSlug(tag)}`
+                                : "/recursos/temas"
                             )}
                             key={tag}
                           >

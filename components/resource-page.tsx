@@ -4,8 +4,14 @@ import { SiteHeader } from "@/components/site-header";
 import { TeachingCard } from "@/components/teaching-card";
 import { TeachingToc } from "@/components/teaching-toc";
 import { extractArticleHeadings } from "@/lib/article-headings";
-import { getResource, getTeachings } from "@/lib/content";
+import {
+  getResource,
+  getResources,
+  getTeachings,
+  getTopicPublicationOverrides
+} from "@/lib/content";
 import { formatDate, localePath } from "@/lib/site";
+import { getPublishedTopicSlugs, topicSlug } from "@/lib/topics";
 import type { Locale } from "@/lib/types";
 import Image from "next/image";
 import Link from "next/link";
@@ -17,9 +23,11 @@ export async function ResourcePage({
   locale: Locale;
   slug: string;
 }) {
-  const [resource, allTeachings] = await Promise.all([
+  const [resource, allTeachings, allResources, publication] = await Promise.all([
     getResource(locale, slug),
-    getTeachings(locale)
+    getTeachings(locale),
+    getResources(locale),
+    getTopicPublicationOverrides()
   ]);
   if (!resource) return null;
   const related = allTeachings
@@ -31,6 +39,12 @@ export async function ResourcePage({
     blocks: resource.blocks,
     body: resource.body
   });
+  const publishedTopicSlugs = getPublishedTopicSlugs(
+    allTeachings,
+    allResources,
+    publication.published,
+    publication.unpublished
+  );
   const resourceKind =
     resource.kind === "contenido-pilar"
       ? locale === "es"
@@ -112,7 +126,19 @@ export async function ResourcePage({
 
                     {resource.tags.length > 0 && (
                       <div className="teaching-tags" aria-label={locale === "es" ? "Temas" : "Topics"}>
-                        {resource.tags.map((tag) => <span key={tag}>{tag}</span>)}
+                        {resource.tags.map((tag) => (
+                          <Link
+                            href={localePath(
+                              locale,
+                              publishedTopicSlugs.has(topicSlug(tag))
+                                ? `/recursos/temas/${topicSlug(tag)}`
+                                : "/recursos/temas"
+                            )}
+                            key={tag}
+                          >
+                            {tag}
+                          </Link>
+                        ))}
                       </div>
                     )}
                   </div>

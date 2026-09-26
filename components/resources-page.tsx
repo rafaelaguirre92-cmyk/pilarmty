@@ -8,13 +8,15 @@ import { ResourceTeachingSort } from "@/components/resource-teaching-sort";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { TeachingCard } from "@/components/teaching-card";
+import { TeachingCardActions } from "@/components/teaching-card-actions";
 import {
   getCollections,
   getResources,
-  getTeachings
+  getTeachings,
+  getTopicPublicationOverrides
 } from "@/lib/content";
 import { formatDate, localePath } from "@/lib/site";
-import { isScriptureTopic, topicSlug } from "@/lib/topics";
+import { getPublishedTopicSlugs, isScriptureTopic, topicSlug } from "@/lib/topics";
 import type { Locale, Resource, Teaching } from "@/lib/types";
 
 const filters = [
@@ -76,16 +78,23 @@ export async function ResourcesPage({
   speaker?: string;
   order?: string;
 }) {
-  const [resources, teachings, collections] = await Promise.all([
+  const [resources, teachings, collections, publication] = await Promise.all([
     getResources(locale),
     getTeachings(locale),
-    getCollections(locale)
+    getCollections(locale),
+    getTopicPublicationOverrides()
   ]);
   const selectedFilter: ResourceFilter = isResourceFilter(filter)
     ? filter
     : "todo";
   const normalizedQuery = query?.trim().toLocaleLowerCase() || "";
   const resourcePath = localePath(locale, "/recursos");
+  const publishedTopicSlugs = getPublishedTopicSlugs(
+    teachings,
+    resources,
+    publication.published,
+    publication.unpublished
+  );
   const searchPath = localePath(locale, locale === "es" ? "/buscar" : "/search");
   const selectedOrder = order === "oldest" ? "oldest" : "newest";
 
@@ -514,15 +523,13 @@ export async function ResourcesPage({
   }
 
   function filterTopicHref(nextTopic: string) {
-    const params = new URLSearchParams({
-      tipo: activeCatalogTab,
-      tema: nextTopic
-    });
-    if (query?.trim()) params.set("q", query.trim());
-    if (series) params.set("serie", series);
-    if (speaker) params.set("predicador", speaker);
-    if (selectedOrder === "oldest") params.set("orden", "oldest");
-    return `${resourcePath}?${params.toString()}#catalogo`;
+    const slug = topicSlug(nextTopic);
+    return localePath(
+      locale,
+      publishedTopicSlugs.has(slug)
+        ? `/recursos/temas/${slug}`
+        : "/recursos/temas"
+    );
   }
 
   function renderCatalogItem(item: CatalogItem) {
@@ -536,25 +543,63 @@ export async function ResourcesPage({
     }
 
     const resource = item.resource;
+    const resourceHref = localePath(locale, `/recursos/${resource.slug}`);
     return (
-      <article
-        className="resource-card catalog-resource-card"
-        key={`resource-${resource.slug}`}
-      >
-        <p className="eyebrow">{labels.articleLabel}</p>
-        <h2>
-          <Link href={localePath(locale, `/recursos/${resource.slug}`)}>
-            {resource.title}
-          </Link>
-        </h2>
-        {resource.excerpt && <p>{resource.excerpt}</p>}
-        <div className="card-meta">
-          {resource.author && <span>{resource.author}</span>}
-          {resource.date && (
-            <time dateTime={resource.date}>
-              {formatDate(resource.date, locale)}
-            </time>
-          )}
+      <article className="teaching-card catalog-resource-card" key={`resource-${resource.slug}`}>
+        {resource.image && (
+          <div className="teaching-card-image">
+            <Image
+              src={resource.image}
+              alt=""
+              fill
+              sizes="(max-width: 719px) 92vw, (max-width: 979px) 46vw, 30vw"
+            />
+          </div>
+        )}
+        <div className="teaching-card-copy">
+          <div className="teaching-card-top">
+            {(resource.author || resource.date) && (
+              <div className="teaching-card-byline">
+                {resource.authorImage && (
+                  <span className="teaching-card-byline-photo" aria-hidden="true">
+                    <Image src={resource.authorImage} alt="" width={28} height={28} />
+                  </span>
+                )}
+                <div className="teaching-card-byline-copy">
+                  {resource.author && (
+                    <span className="teaching-card-byline-author">{resource.author}</span>
+                  )}
+                  {resource.date && (
+                    <p className="teaching-card-byline-meta">
+                      <time dateTime={resource.date}>{formatDate(resource.date, locale)}</time>
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+            <TeachingCardActions
+              contentType="resource"
+              href={resourceHref}
+              locale={locale}
+              title={resource.title}
+            />
+          </div>
+          <h3>
+            <Link className="teaching-card-stretched-link" href={resourceHref}>
+              {resource.title}
+            </Link>
+          </h3>
+          <p className="teaching-card-series">{labels.articleLabel}</p>
+          {resource.excerpt && <p className="teaching-card-excerpt">{resource.excerpt}</p>}
+          <div className="teaching-card-footer">
+            {resource.tags.length > 0 && (
+              <div className="tag-row" aria-label={locale === "es" ? "Temas" : "Topics"}>
+                {resource.tags.slice(0, 2).map((tag) => (
+                  <Link href={filterTopicHref(tag)} key={tag}>{tag}</Link>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </article>
     );
