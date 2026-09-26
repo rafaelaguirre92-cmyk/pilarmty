@@ -13,6 +13,7 @@ import {
   afterEditorialDelete,
   guardPublishedSlug
 } from "@/cms/hooks/content";
+import { teachingCountHook } from "@/cms/hooks/teaching-count";
 import {
   autoTranslateHook,
   markEnglishTranslationReviewed
@@ -25,7 +26,7 @@ export const Series: CollectionConfig = {
   admin: {
     useAsTitle: "title",
     group: "Metadata",
-    defaultColumns: ["title", "kind", "_status"],
+    defaultColumns: ["title", "kind", "teachingsCount", "_status"],
     preview: previewUrl("series"),
     livePreview: { url: previewUrl("series") }
   },
@@ -42,6 +43,7 @@ export const Series: CollectionConfig = {
   },
   hooks: {
     beforeChange: [guardPublishedSlug, markEnglishTranslationReviewed],
+    afterRead: [teachingCountHook("series")],
     afterChange: [afterEditorialChange("series"), autoTranslateHook("series")],
     afterDelete: [afterEditorialDelete("series")]
   },
@@ -60,6 +62,13 @@ export const Series: CollectionConfig = {
       ]
     },
     { name: "description", type: "textarea", label: "Descripción", localized: true },
+    {
+      name: "teachingsCount",
+      type: "number",
+      virtual: true,
+      label: "Enseñanzas",
+      admin: { readOnly: true }
+    },
     {
       type: "collapsible",
       label: "Portadas de la serie",

@@ -301,6 +301,7 @@ export interface Series {
   slug: string;
   kind: 'series' | 'event';
   description?: string | null;
+  teachingsCount?: number | null;
   /**
    * Formato recomendado: 1600 × 900 px. Es la portada principal y conserva las imágenes existentes.
    */
@@ -355,6 +356,7 @@ export interface Author {
    * Se genera automáticamente. Cambiarlo después de publicar creará una redirección permanente.
    */
   slug: string;
+  teachingsCount?: number | null;
   role?: ('Pastor' | 'Invitado') | null;
   active?: boolean | null;
   bio?: string | null;
@@ -384,6 +386,7 @@ export interface Topic {
    * Se genera automáticamente. Cambiarlo después de publicar creará una redirección permanente.
    */
   slug: string;
+  teachingsCount?: number | null;
   /**
    * Publica la página cuando tenga contenido, aunque no alcance el mínimo automático de 3 publicaciones.
    */
@@ -863,6 +866,7 @@ export interface MediaSelect<T extends boolean = true> {
 export interface AuthorsSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
+  teachingsCount?: T;
   role?: T;
   active?: T;
   bio?: T;
@@ -882,6 +886,7 @@ export interface AuthorsSelect<T extends boolean = true> {
 export interface TopicsSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
+  teachingsCount?: T;
   publishPage?: T;
   unpublishPage?: T;
   migrationKey?: T;
@@ -898,6 +903,7 @@ export interface SeriesSelect<T extends boolean = true> {
   slug?: T;
   kind?: T;
   description?: T;
+  teachingsCount?: T;
   image?: T;
   imageSquare?: T;
   imageVertical?: T;

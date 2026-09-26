@@ -3,6 +3,7 @@ import type { CollectionConfig } from "payload";
 import { authenticated } from "@/cms/access";
 import { slugField } from "@/cms/fields/slug";
 import { afterEditorialChange, afterEditorialDelete } from "@/cms/hooks/content";
+import { teachingCountHook } from "@/cms/hooks/teaching-count";
 
 export const Topics: CollectionConfig = {
   slug: "topics",
@@ -10,17 +11,25 @@ export const Topics: CollectionConfig = {
   admin: {
     useAsTitle: "name",
     group: "Metadata",
-    defaultColumns: ["name", "slug"]
+    defaultColumns: ["name", "teachingsCount", "slug"]
   },
   access: { read: () => true, create: authenticated, update: authenticated, delete: authenticated },
   trash: true,
   hooks: {
+    afterRead: [teachingCountHook("topics")],
     afterChange: [afterEditorialChange("topics")],
     afterDelete: [afterEditorialDelete("topics")]
   },
   fields: [
     { name: "name", type: "text", label: "Nombre", required: true, unique: true },
     slugField("name"),
+    {
+      name: "teachingsCount",
+      type: "number",
+      virtual: true,
+      label: "Enseñanzas",
+      admin: { readOnly: true }
+    },
     {
       name: "publishPage",
       type: "checkbox",

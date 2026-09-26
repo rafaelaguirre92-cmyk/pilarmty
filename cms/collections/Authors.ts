@@ -6,13 +6,15 @@ import {
   afterRelatedContentChange,
   afterRelatedContentDelete
 } from "@/cms/hooks/content";
+import { teachingCountHook } from "@/cms/hooks/teaching-count";
 
 export const Authors: CollectionConfig = {
   slug: "authors",
   labels: { singular: "Autor u orador", plural: "Autores y oradores" },
-  admin: { useAsTitle: "name", group: "Metadata", defaultColumns: ["name", "slug"] },
+  admin: { useAsTitle: "name", group: "Metadata", defaultColumns: ["name", "teachingsCount", "slug"] },
   access: { read: () => true, create: authenticated, update: authenticated, delete: authenticated },
   hooks: {
+    afterRead: [teachingCountHook("author")],
     afterChange: [afterRelatedContentChange],
     afterDelete: [afterRelatedContentDelete]
   },
@@ -20,6 +22,13 @@ export const Authors: CollectionConfig = {
   fields: [
     { name: "name", type: "text", label: "Nombre", required: true, unique: true },
     slugField("name"),
+    {
+      name: "teachingsCount",
+      type: "number",
+      virtual: true,
+      label: "Enseñanzas",
+      admin: { readOnly: true }
+    },
     {
       name: "role",
       type: "select",
