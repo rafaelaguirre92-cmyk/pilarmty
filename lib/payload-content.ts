@@ -136,6 +136,7 @@ function mapResource(
     body: doc.body as Record<string, unknown> | undefined,
     author: authorName(doc.author),
     authorUrl: authorUrl(doc.author),
+    authorImage: authorImage(doc.author),
     date: doc.contentDate || undefined,
     tags: topicNames(doc.topics),
     image: doc.notionImageUrl || mediaUrl(doc.image),

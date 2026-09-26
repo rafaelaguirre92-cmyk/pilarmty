@@ -81,6 +81,7 @@ export type Resource = {
   seoDescription?: string;
   author?: string;
   authorUrl?: string;
+  authorImage?: string;
   date?: string;
   tags: string[];
   relatedTeachingSlugs: string[];

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Fragment } from "react";
 
 import { ArticleBody } from "@/components/article-body";
@@ -144,7 +145,15 @@ export async function TeachingPage({
                         <div className="teaching-meta-item teaching-meta-author">
                           <Link className="teaching-author-link" href={authorHref}>
                             <span className="teaching-author-avatar">
-                              {teaching.author.charAt(0)}
+                              {teaching.authorImage ? (
+                                <Image
+                                  alt=""
+                                  className="teaching-author-avatar-image"
+                                  height={36}
+                                  src={teaching.authorImage}
+                                  width={36}
+                                />
+                              ) : teaching.author.charAt(0)}
                             </span>
                             <span className="teaching-meta-val">{teaching.author}</span>
                           </Link>

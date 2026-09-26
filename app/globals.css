@@ -4301,6 +4301,7 @@ body.search-overlay-open {
 :root[data-theme="dark"] .resource-catalog-section .resource-filters-trigger,
 :root[data-theme="dark"] .resource-catalog-section .teaching-card,
 :root[data-theme="dark"] .resource-catalog-section .teaching-card-copy,
+:root[data-theme="dark"] .resource-catalog-section .resource-card,
 :root[data-theme="dark"] .resource-catalog-section .resource-filter-empty,
 :root[data-theme="dark"] .resource-catalog-section .resource-teaching-filters,
 :root[data-theme="dark"] .resource-filters-panel,
@@ -8961,6 +8962,14 @@ body.resource-filters-open {
   gap: 24px;
 }
 
+.resource-header-excerpt {
+  max-width: 68ch;
+  margin: 8px 0 0;
+  color: var(--text-soft);
+  font-size: 18px;
+  line-height: 1.65;
+}
+
 .teaching-title {
   font-family: var(--font-sans);
   font-size: clamp(32px, 3.8vw, 44px);
@@ -9012,6 +9021,7 @@ body.resource-filters-open {
 
 .teaching-author-avatar {
   display: grid;
+  overflow: hidden;
   place-items: center;
   width: 36px;
   height: 36px;
@@ -9021,6 +9031,12 @@ body.resource-filters-open {
   font-size: 14px;
   font-weight: 700;
   transition: transform 160ms ease;
+}
+
+.teaching-author-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 :root[data-theme="dark"] .teaching-author-avatar {
@@ -9046,7 +9062,8 @@ body.resource-filters-open {
   margin: 0;
 }
 
-.teaching-tags a {
+.teaching-tags a,
+.teaching-tags span {
   display: inline-flex;
   align-items: center;
   padding: 4px 12px;
