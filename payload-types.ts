@@ -100,10 +100,10 @@ export interface Config {
   db: {
     defaultIDType: number;
   };
-  fallbackLocale: ('false' | 'none' | 'null') | false | null | ('es' | 'en') | ('es' | 'en')[];
+  fallbackLocale: ('false' | 'none' | 'null') | false | null | 'es' | 'es'[];
   globals: {};
   globalsSelect: {};
-  locale: 'es' | 'en';
+  locale: 'es';
   widgets: {
     collections: CollectionsWidget;
   };
@@ -142,8 +142,8 @@ export interface UserAuthOperations {
  * via the `definition` "teachings".
  */
 export interface Teaching {
-  notionImageUrl?: string | null;
   id: number;
+  durationMinutes?: number | null;
   title: string;
   body?: {
     root: {
@@ -204,7 +204,6 @@ export interface Teaching {
   series: number | Series;
   episode?: number | null;
   author?: (number | null) | Author;
-  durationMinutes?: number | null;
   /**
    * Genera automáticamente tooltips con el texto bíblico.
    */
@@ -224,6 +223,10 @@ export interface Teaching {
   youtubeDescription?: string | null;
   spotifyUrl?: string | null;
   image?: (number | null) | Media;
+  /**
+   * Tiene prioridad sobre la imagen de la serie.
+   */
+  notionImageUrl?: string | null;
   mediaLinks?:
     | {
         label: string;
@@ -353,9 +356,6 @@ export interface Author {
    */
   slug: string;
   role?: ('Pastor' | 'Invitado') | null;
-  /**
-   * Conserva el estado editorial que se gestiona en Notion.
-   */
   active?: boolean | null;
   bio?: string | null;
   /**
@@ -367,6 +367,7 @@ export interface Author {
    */
   photoUrl?: string | null;
   image?: (number | null) | Media;
+  notionPageId?: string | null;
   migrationKey?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -401,8 +402,8 @@ export interface Topic {
  * via the `definition` "resources".
  */
 export interface Resource {
-  notionImageUrl?: string | null;
   id: number;
+  notionImageUrl?: string | null;
   title: string;
   /**
    * Una introducción breve para tarjetas, buscadores y redes sociales.
@@ -710,6 +711,7 @@ export interface PayloadMigration {
  * via the `definition` "teachings_select".
  */
 export interface TeachingsSelect<T extends boolean = true> {
+  durationMinutes?: T;
   title?: T;
   body?: T;
   slug?: T;
@@ -737,7 +739,6 @@ export interface TeachingsSelect<T extends boolean = true> {
   series?: T;
   episode?: T;
   author?: T;
-  durationMinutes?: T;
   keyVerse?: T;
   topics?: T;
   excerpt?: T;
@@ -745,6 +746,7 @@ export interface TeachingsSelect<T extends boolean = true> {
   youtubeDescription?: T;
   spotifyUrl?: T;
   image?: T;
+  notionImageUrl?: T;
   mediaLinks?:
     | T
     | {
@@ -762,6 +764,7 @@ export interface TeachingsSelect<T extends boolean = true> {
  * via the `definition` "resources_select".
  */
 export interface ResourcesSelect<T extends boolean = true> {
+  notionImageUrl?: T;
   title?: T;
   excerpt?: T;
   body?: T;
@@ -866,6 +869,7 @@ export interface AuthorsSelect<T extends boolean = true> {
   profileUrl?: T;
   photoUrl?: T;
   image?: T;
+  notionPageId?: T;
   migrationKey?: T;
   updatedAt?: T;
   createdAt?: T;

@@ -9,6 +9,17 @@ import {
 } from "../lib/content";
 import { pickCanonicalDocument } from "../lib/notion-payload-link";
 import { decideSyncDirection } from "../lib/notion-payload-reconcile";
+import {
+  authorMigrationKey,
+  normalizeMetadataName,
+  seriesMigrationKey,
+  topicMigrationKey
+} from "../lib/notion-metadata-identity";
+import {
+  propertyMultiSelectOptions,
+  propertySelectOption
+} from "../lib/notion";
+import { pickCanonicalMetadataDocument } from "../lib/notion-metadata-repair";
 
 const baseDoc = {
   id: 1,
@@ -133,6 +144,45 @@ test("normalizeTeachingPage generates slug and series from titles when empty", (
   assert.ok(teaching);
   assert.equal(teaching.slug, "cristo-edifica-su-iglesia");
   assert.equal(teaching.collection, "orador-invitado");
+});
+
+test("Notion select and multi-select IDs create stable metadata keys", () => {
+  const series = propertySelectOption({
+    select: { id: "select-series-1", name: "Oradores Invitados" }
+  });
+  const topics = propertyMultiSelectOptions({
+    multi_select: [{ id: "topic-1", name: "Gracia" }]
+  });
+
+  assert.deepEqual(series, { id: "select-series-1", name: "Oradores Invitados" });
+  assert.deepEqual(topics, [{ id: "topic-1", name: "Gracia" }]);
+  assert.equal(seriesMigrationKey(series?.id, "oradores-invitados"), "notion:series-option:select-series-1");
+  assert.equal(topicMigrationKey(topics[0]!), "notion:topic-option:topic-1");
+  assert.equal(authorMigrationKey("author-page-1"), "notion:author:author-page-1");
+});
+
+test("metadata name normalization ignores case, spacing and unicode form", () => {
+  assert.equal(normalizeMetadataName("  GRACIA  "), "gracia");
+  assert.equal(normalizeMetadataName("Jesu\u0301s"), "jesús");
+});
+
+test("metadata repair keeps the published Notion-linked record", () => {
+  const keep = pickCanonicalMetadataDocument([
+    {
+      id: 2,
+      name: "Gracia",
+      migrationKey: "topic:gracia",
+      updatedAt: "2026-09-20T00:00:00.000Z"
+    },
+    {
+      id: 1,
+      name: "Gracia",
+      migrationKey: "notion:topic-option:topic-1",
+      _status: "published",
+      updatedAt: "2026-09-01T00:00:00.000Z"
+    }
+  ]);
+  assert.equal(keep.id, 1);
 });
 
 test("normalizeResourcePage generates slug when empty", () => {

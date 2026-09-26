@@ -260,6 +260,73 @@ body:has(.template-default),
   color: #fca5a5;
 }
 
+.pilar-metadata-repair {
+  margin-bottom: 32px;
+  padding: 20px 24px;
+  border: 1px solid rgba(139, 168, 146, 0.22);
+  border-radius: 12px;
+  background: rgba(20, 53, 52, 0.25);
+}
+
+.pilar-metadata-repair__header,
+.pilar-metadata-repair__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pilar-metadata-repair__header h2 {
+  margin: 0 0 4px;
+  color: #fff;
+  font-size: 1.05rem;
+}
+
+.pilar-metadata-repair__header p,
+.pilar-metadata-repair__empty {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 0.875rem;
+}
+
+.pilar-metadata-repair__list {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  margin: 18px 0 0;
+  list-style: none;
+}
+
+.pilar-metadata-repair__item {
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.pilar-metadata-repair__item strong,
+.pilar-metadata-repair__item span {
+  display: block;
+}
+
+.pilar-metadata-repair__item strong {
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.pilar-metadata-repair__item span {
+  margin-top: 3px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 640px) {
+  .pilar-metadata-repair__header,
+  .pilar-metadata-repair__item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 /* Vercel Overview Status Hero Card */
 .pilar-sync-hero-card {
   display: flex;

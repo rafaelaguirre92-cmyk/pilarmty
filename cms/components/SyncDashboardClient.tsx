@@ -8,6 +8,15 @@ interface SyncDashboardClientProps {
   initialHistory: SyncHistoryEntry[];
 }
 
+type MetadataDuplicateGroup = {
+  collection: "series" | "authors" | "topics";
+  key: string;
+  label: string;
+  keepId: number | string;
+  dropIds: Array<number | string>;
+  affectedDocuments: number;
+};
+
 function timeAgo(dateString: string): string {
   const date = new Date(dateString);
   const now = new Date();
@@ -43,6 +52,9 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
     type: "success" | "warning" | "error";
     message: string;
   } | null>(null);
+  const [metadataGroups, setMetadataGroups] = useState<MetadataDuplicateGroup[] | null>(null);
+  const [metadataLoading, setMetadataLoading] = useState(false);
+  const [mergingMetadataKey, setMergingMetadataKey] = useState<string | null>(null);
 
   const latest = history[0] || null;
 
@@ -92,6 +104,54 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
       });
     } finally {
       setSyncing(false);
+    }
+  }
+
+  async function loadMetadataDuplicates() {
+    setMetadataLoading(true);
+    try {
+      const res = await fetch("/api/notion/repair-metadata-duplicates", { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "No se pudieron revisar los metadatos.");
+      setMetadataGroups(Array.isArray(data.groups) ? data.groups : []);
+    } catch (err) {
+      setFeedback({
+        type: "error",
+        message: err instanceof Error ? err.message : String(err)
+      });
+    } finally {
+      setMetadataLoading(false);
+    }
+  }
+
+  async function mergeMetadataGroup(group: MetadataDuplicateGroup) {
+    const confirmed = window.confirm(
+      `Se conservará el registro #${group.keepId} de ${group.label} y se enviarán ${group.dropIds.length} duplicado(s) a la papelera. Las relaciones se reasignarán automáticamente.\n\n¿Continuar?`
+    );
+    if (!confirmed) return;
+
+    const requestKey = `${group.collection}:${group.key}`;
+    setMergingMetadataKey(requestKey);
+    try {
+      const res = await fetch("/api/notion/repair-metadata-duplicates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ collection: group.collection, key: group.key })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "No se pudo unir el grupo.");
+      setFeedback({
+        type: "success",
+        message: `Se unió el grupo "${group.label}" y se reasignaron ${data.result.affectedDocuments} relación(es).`
+      });
+      await loadMetadataDuplicates();
+    } catch (err) {
+      setFeedback({
+        type: "error",
+        message: err instanceof Error ? err.message : String(err)
+      });
+    } finally {
+      setMergingMetadataKey(null);
     }
   }
 
@@ -168,6 +228,56 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
         </div>
       )}
 
+      <section className="pilar-metadata-repair" aria-labelledby="metadata-duplicates-title">
+        <div className="pilar-metadata-repair__header">
+          <div>
+            <h2 id="metadata-duplicates-title">Duplicados de metadatos</h2>
+            <p>Revisa y une manualmente series, autores y temas. Las enseñanzas y artículos no se modifican aquí.</p>
+          </div>
+          <Button
+            buttonStyle="secondary"
+            disabled={metadataLoading || mergingMetadataKey !== null}
+            onClick={loadMetadataDuplicates}
+            type="button"
+          >
+            {metadataLoading ? "Revisando…" : "Buscar duplicados"}
+          </Button>
+        </div>
+
+        {metadataGroups !== null && (
+          metadataGroups.length === 0 ? (
+            <p className="pilar-metadata-repair__empty">No se encontraron grupos duplicados.</p>
+          ) : (
+            <ul className="pilar-metadata-repair__list">
+              {metadataGroups.map((group) => {
+                const requestKey = `${group.collection}:${group.key}`;
+                const isMerging = mergingMetadataKey === requestKey;
+                return (
+                  <li key={requestKey} className="pilar-metadata-repair__item">
+                    <div>
+                      <strong>{group.label}</strong>
+                      <span>
+                        {group.collection === "series" ? "Serie" : group.collection === "authors" ? "Autor" : "Tema"}
+                        {" · "}conservar #{group.keepId}, archivar {group.dropIds.length}
+                        {" · "}{group.affectedDocuments} relación(es)
+                      </span>
+                    </div>
+                    <Button
+                      buttonStyle="secondary"
+                      disabled={metadataLoading || mergingMetadataKey !== null}
+                      onClick={() => mergeMetadataGroup(group)}
+                      type="button"
+                    >
+                      {isMerging ? "Uniendo…" : "Unir este grupo"}
+                    </Button>
+                  </li>
+                );
+              })}
+            </ul>
+          )
+        )}
+      </section>
+
       {/* Vercel-style Overview Status Hero Card */}
       <div className="pilar-sync-hero-card">
         <div className="pilar-sync-hero-card__main">
@@ -211,7 +321,7 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
                 <span className="pilar-sync-hero-card__date">{formatFullDate(latest.finishedAt)}</span>
               </>
             ) : (
-              <span>Pulsa "Sincronizar ahora" para registrar la primera sincronización.</span>
+              <span>Pulsa &quot;Sincronizar ahora&quot; para registrar la primera sincronización.</span>
             )}
           </div>
         </div>

@@ -6,6 +6,7 @@ import * as migration_20260920_120000_author_notion_fields from './20260920_1200
 import * as migration_20260920_130000_youtube_description from './20260920_130000_youtube_description';
 import * as migration_20260920_140000_archive_legacy_teaching_duplicates from './20260920_140000_archive_legacy_teaching_duplicates';
 import * as repairTeachingVersions from './20260920_180000_repair_teaching_versions';
+import * as migration_20260926_130000_metadata_identity from './20260926_130000_metadata_identity';
 
 export const migrations = [
   {
@@ -44,4 +45,9 @@ export const migrations = [
     name: '20260920_140000_archive_legacy_teaching_duplicates'
   },
   { up: repairTeachingVersions.up, down: repairTeachingVersions.down, name: '20260920_180000_repair_teaching_versions' },
+  {
+    up: migration_20260926_130000_metadata_identity.up,
+    down: migration_20260926_130000_metadata_identity.down,
+    name: '20260926_130000_metadata_identity'
+  }
 ];

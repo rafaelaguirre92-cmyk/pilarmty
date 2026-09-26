@@ -62,6 +62,13 @@ export const Authors: CollectionConfig = {
       }
     },
     { name: "image", type: "upload", relationTo: "media", label: "Fotografía" },
+    {
+      name: "notionPageId",
+      type: "text",
+      unique: true,
+      index: true,
+      admin: { hidden: true, readOnly: true }
+    },
     { name: "migrationKey", type: "text", unique: true, index: true, admin: { hidden: true } }
   ]
 };

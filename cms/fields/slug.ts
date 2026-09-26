@@ -10,12 +10,17 @@ export function slugify(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-export const slugField = (source = "title", localized = false): Field => ({
+export const slugField = (
+  source = "title",
+  localized = false,
+  unique = false
+): Field => ({
   name: "slug",
   type: "text",
   label: "URL (slug)",
   required: true,
   index: true,
+  unique,
   localized,
   admin: {
     description:

@@ -18,8 +18,8 @@ export type NotionProperty = {
   type?: string;
   title?: Array<{ plain_text?: string }>;
   rich_text?: Array<{ plain_text?: string }>;
-  select?: { name?: string } | null;
-  multi_select?: Array<{ name?: string }>;
+  select?: { id?: string; name?: string } | null;
+  multi_select?: Array<{ id?: string; name?: string }>;
   date?: { start?: string; end?: string | null } | null;
   number?: number | null;
   checkbox?: boolean;
@@ -220,10 +220,30 @@ export function propertySelect(property: NotionProperty | undefined) {
   return property?.select?.name?.trim() || "";
 }
 
+export function propertySelectOption(property: NotionProperty | undefined) {
+  const name = propertySelect(property);
+  if (!name) return undefined;
+  const option = property?.select;
+  return {
+    id: option?.id?.trim() || undefined,
+    name
+  };
+}
+
 export function propertyMultiSelect(property: NotionProperty | undefined) {
-  return (property?.multi_select || [])
-    .map((value) => value.name?.trim())
-    .filter((value): value is string => Boolean(value));
+  return propertyMultiSelectOptions(property).map((value) => value.name);
+}
+
+export function propertyMultiSelectOptions(
+  property: NotionProperty | undefined
+): Array<{ id?: string; name: string }> {
+  const options: Array<{ id?: string; name: string }> = [];
+  for (const value of property?.multi_select || []) {
+    const name = value.name?.trim();
+    if (!name) continue;
+    options.push({ id: value.id?.trim() || undefined, name });
+  }
+  return options;
 }
 
 export function propertyDate(property: NotionProperty | undefined) {

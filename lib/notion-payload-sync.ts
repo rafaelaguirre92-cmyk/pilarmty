@@ -9,12 +9,19 @@ import {
   propertyCheckbox,
   propertyRelationIds,
   propertySelect,
+  propertySelectOption,
   propertyText,
   propertyUrl,
+  propertyMultiSelectOptions,
   updateNotionPageProperties,
   type NotionPage
 } from "@/lib/notion";
 import { authorIdForNotionRelation } from "@/lib/notion-authors-sync";
+import {
+  seriesMigrationKey,
+  topicMigrationKey,
+  type NotionMetadataOption
+} from "@/lib/notion-metadata-identity";
 import {
   findLinkedDocument,
   type SyncCollection
@@ -31,62 +38,147 @@ function fitSeoDescription(value?: string) {
   return `${candidate.slice(0, boundary > 120 ? boundary : 167).trimEnd()}…`;
 }
 
-async function findOne(payload: Payload, collection: string, where: Record<string, unknown>) {
+type MetadataDocument = {
+  id: number | string;
+  name?: string;
+  migrationKey?: string | null;
+};
+
+async function findMetadataDocuments(
+  payload: Payload,
+  collection: "series" | "topics",
+  where: Record<string, unknown>
+) {
   const result = await payload.find({
     collection: collection as never,
     where: where as never,
     locale: "es",
     draft: true,
     depth: 0,
-    limit: 1,
+    limit: 1000,
+    pagination: false,
     overrideAccess: true
   });
-  return result.docs[0] as { id: number | string } | undefined;
+  return result.docs as unknown as MetadataDocument[];
 }
 
-async function namedRelation(
+async function namedMetadataRelation(
   payload: Payload,
-  collection: "authors" | "topics",
-  name: string
+  collection: "topics",
+  option: NotionMetadataOption
 ) {
-  if (!name) return undefined;
-  const existing = await findOne(payload, collection, { name: { equals: name } });
-  if (existing) return existing.id;
-  const created = await payload.create({
-    collection,
-    data: {
-      name,
-      migrationKey: `${collection === "authors" ? "author" : "topic"}:${name.toLocaleLowerCase("es-MX")}`
-    } as never,
-    depth: 0,
-    overrideAccess: true
+  const migrationKey = topicMigrationKey(option);
+  const linked = await findMetadataDocuments(payload, collection, {
+    migrationKey: { equals: migrationKey }
   });
-  return created.id;
+  if (linked.length === 1) return linked[0]!.id;
+  if (linked.length > 1) {
+    throw new Error(`Hay ${linked.length} temas con la clave ${migrationKey}. Únelos manualmente.`);
+  }
+
+  const sameName = await findMetadataDocuments(payload, collection, {
+    name: { equals: option.name }
+  });
+  if (sameName.length > 1) {
+    throw new Error(`Hay ${sameName.length} temas con el nombre "${option.name}". Únelos manualmente.`);
+  }
+  if (sameName.length === 1) {
+    const existing = sameName[0]!;
+    if (existing.migrationKey !== migrationKey) {
+      await payload.update({
+        collection,
+        id: existing.id,
+        data: { migrationKey } as never,
+        depth: 0,
+        overrideAccess: true,
+        context: { skipNotionSync: true, skipAutoTranslate: true }
+      });
+    }
+    return existing.id;
+  }
+
+  try {
+    const created = await payload.create({
+      collection,
+      data: { name: option.name, migrationKey } as never,
+      depth: 0,
+      overrideAccess: true
+    });
+    return created.id;
+  } catch (error) {
+    const concurrent = await findMetadataDocuments(payload, collection, {
+      migrationKey: { equals: migrationKey }
+    });
+    if (concurrent.length !== 1) throw error;
+    return concurrent[0]!.id;
+  }
 }
 
-async function seriesRelation(payload: Payload, slug: string, title?: string) {
-  const existing = await findOne(payload, "series", { slug: { equals: slug } });
-  if (existing) return existing.id;
-  const created = await payload.create({
-    collection: "series",
-    data: {
-      title: title || slugToTitle(slug),
-      slug,
-      kind: "series",
-      migrationKey: `notion:series:${slug}`,
-      _status: "published"
-    },
-    locale: "es",
-    depth: 0,
-    overrideAccess: true,
-    draft: false,
-    context: { skipNotionSync: true, skipAutoTranslate: true }
+async function seriesRelation(
+  payload: Payload,
+  slug: string,
+  title: string | undefined,
+  optionId: string | undefined
+) {
+  const migrationKey = seriesMigrationKey(optionId, slug);
+  const linked = await findMetadataDocuments(payload, "series", {
+    migrationKey: { equals: migrationKey }
   });
-  return created.id;
+  if (linked.length === 1) return linked[0]!.id;
+  if (linked.length > 1) {
+    throw new Error(`Hay ${linked.length} series con la clave ${migrationKey}. Únelas manualmente.`);
+  }
+
+  const sameSlug = await findMetadataDocuments(payload, "series", {
+    slug: { equals: slug }
+  });
+  if (sameSlug.length > 1) {
+    throw new Error(`Hay ${sameSlug.length} series con el slug "${slug}". Únelas manualmente.`);
+  }
+  if (sameSlug.length === 1) {
+    const existing = sameSlug[0]!;
+    if (existing.migrationKey !== migrationKey) {
+      await payload.update({
+        collection: "series",
+        id: existing.id,
+        data: { migrationKey } as never,
+        locale: "es",
+        depth: 0,
+        overrideAccess: true,
+        context: { skipNotionSync: true, skipAutoTranslate: true }
+      });
+    }
+    return existing.id;
+  }
+
+  try {
+    const created = await payload.create({
+      collection: "series",
+      data: {
+        title: title || slugToTitle(slug),
+        slug,
+        kind: "series",
+        migrationKey,
+        _status: "published"
+      },
+      locale: "es",
+      depth: 0,
+      overrideAccess: true,
+      draft: false,
+      context: { skipNotionSync: true, skipAutoTranslate: true }
+    });
+    return created.id;
+  } catch (error) {
+    const concurrent = await findMetadataDocuments(payload, "series", {
+      migrationKey: { equals: migrationKey }
+    });
+    if (concurrent.length !== 1) throw error;
+    return concurrent[0]!.id;
+  }
 }
 
-async function topicRelations(payload: Payload, names: string[]) {
-  return (await Promise.all(names.map((name) => namedRelation(payload, "topics", name)))).filter(Boolean);
+async function topicRelations(payload: Payload, options: NotionMetadataOption[]) {
+  return (await Promise.all(options.map((option) => namedMetadataRelation(payload, "topics", option)))).filter(Boolean);
 }
 
 async function authorRelation(payload: Payload, page: NotionPage) {
@@ -217,7 +309,12 @@ export async function syncNotionPageToPayload(payload: Payload, pageId: string) 
     const doc = await save(payload, collection, page, {
       title: item.title,
       slug: item.slug,
-      series: await seriesRelation(payload, item.collection, item.collectionName),
+      series: await seriesRelation(
+        payload,
+        item.collection,
+        item.collectionName,
+        propertySelectOption(page.properties.Serie)?.id
+      ),
       episode: item.episode,
       keyVerse: item.keyVerse || null,
       teachingDate: item.date || null,
@@ -228,7 +325,7 @@ export async function syncNotionPageToPayload(payload: Payload, pageId: string) 
       youtubeDescription: item.youtubeDescription || null,
       notionImageUrl: item.image || null,
       spotifyUrl: item.spotifyUrl,
-      topics: await topicRelations(payload, item.tags),
+      topics: await topicRelations(payload, propertyMultiSelectOptions(page.properties.Etiquetas)),
       legacy: item.legacy,
       seo: { description: fitSeoDescription(item.seoDescription) },
       _status: status
@@ -256,7 +353,7 @@ export async function syncNotionPageToPayload(payload: Payload, pageId: string) 
     author: author || null,
     excerpt: item.excerpt,
     body,
-    topics: await topicRelations(payload, item.tags),
+    topics: await topicRelations(payload, propertyMultiSelectOptions(page.properties.Etiquetas)),
     seo: { description: fitSeoDescription(item.seoDescription) },
     _status: status
   });

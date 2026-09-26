@@ -47,7 +47,7 @@ export const Series: CollectionConfig = {
   },
   fields: [
     { name: "title", type: "text", label: "Título", required: true, localized: true },
-    slugField("title", true),
+    slugField("title", true, true),
     {
       name: "kind",
       type: "select",
