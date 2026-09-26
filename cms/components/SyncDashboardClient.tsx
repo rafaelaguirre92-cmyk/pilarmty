@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { Button, Gutter, SetStepNav } from "@payloadcms/ui";
 import type { SyncHistoryEntry } from "@/lib/sync-history";
 
@@ -44,6 +44,68 @@ function formatFullDate(dateString: string): string {
   } catch {
     return dateString;
   }
+}
+
+function SyncDetail({
+  entry,
+  onClose
+}: {
+  entry: SyncHistoryEntry;
+  onClose: () => void;
+}) {
+  return (
+    <div className="pilar-sync-drawer">
+      <div className="pilar-sync-drawer__inner">
+        <div className="pilar-sync-drawer__head">
+          <div>
+            <h4 className="pilar-sync-drawer__title">
+              Reporte detallado: <code>{entry.id}</code>
+            </h4>
+            <p className="pilar-sync-drawer__subtitle">
+              Ejecución finalizada el {formatFullDate(entry.finishedAt)} ({entry.trigger === "manual" ? "Manual" : "Cron automático"}).
+            </p>
+          </div>
+          <button type="button" className="pilar-sync-drawer__close" onClick={onClose} aria-label="Cerrar reporte">
+            ×
+          </button>
+        </div>
+        {entry.errors.length > 0 ? (
+          <div className="pilar-sync-drawer__errors">
+            <div className="pilar-sync-drawer__error-heading">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              Incidentes detectados ({entry.errors.length})
+            </div>
+            <ul className="pilar-sync-drawer__error-list">
+              {entry.errors.map((item, idx) => (
+                <li key={`${item.notionPageId || item.id || "err"}-${idx}`} className="pilar-sync-error-item">
+                  <div className="pilar-sync-error-item__top">
+                    <span className="pilar-sync-error-item__title">{item.title || "Elemento sin título"}</span>
+                    <span className="pilar-sync-error-item__tag">{item.collection || "Colección"}</span>
+                    {item.notionPageId && <span className="pilar-sync-error-item__notion-id">Notion: {item.notionPageId}</span>}
+                  </div>
+                  <div className="pilar-sync-error-item__msg"><code>{item.message}</code></div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <div className="pilar-sync-drawer__clean">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            <div>
+              <strong>Ejecución limpia y exitosa</strong>
+              <p>Todos los documentos evaluados se conciliaron correctamente sin fallos ni discrepancias.</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps) {
@@ -192,6 +254,15 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
         </div>
         <div className="pilar-sync-header__actions">
           <Button
+            buttonStyle="secondary"
+            disabled={metadataLoading || mergingMetadataKey !== null}
+            onClick={loadMetadataDuplicates}
+            type="button"
+            className="pilar-sync-btn pilar-sync-btn--secondary"
+          >
+            {metadataLoading ? "Buscando…" : "Buscar duplicados"}
+          </Button>
+          <Button
             buttonStyle="primary"
             disabled={syncing}
             onClick={handleSyncNow}
@@ -236,24 +307,16 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
         </div>
       )}
 
-      <section className="pilar-metadata-repair" aria-labelledby="metadata-duplicates-title">
+      {metadataGroups !== null && (
+        <section className="pilar-metadata-repair" aria-labelledby="metadata-duplicates-title">
         <div className="pilar-metadata-repair__header">
           <div>
             <h2 id="metadata-duplicates-title">Duplicados de metadatos</h2>
             <p>Revisa y une manualmente series, autores y temas. Las enseñanzas y artículos no se modifican aquí.</p>
           </div>
-          <Button
-            buttonStyle="secondary"
-            disabled={metadataLoading || mergingMetadataKey !== null}
-            onClick={loadMetadataDuplicates}
-            type="button"
-          >
-            {metadataLoading ? "Revisando…" : "Buscar duplicados"}
-          </Button>
         </div>
 
-        {metadataGroups !== null && (
-          metadataGroups.length === 0 ? (
+        {metadataGroups.length === 0 ? (
             <p className="pilar-metadata-repair__empty">No se encontraron grupos duplicados.</p>
           ) : (
             <ul className="pilar-metadata-repair__list">
@@ -310,9 +373,9 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
                 );
               })}
             </ul>
-          )
-        )}
-      </section>
+          )}
+        </section>
+      )}
 
       {/* Vercel-style Overview Status Hero Card */}
       <div className="pilar-sync-hero-card">
@@ -423,8 +486,8 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
                   const hasErrors = entry.errors && entry.errors.length > 0;
 
                   return (
+                    <Fragment key={entry.id}>
                     <tr
-                      key={entry.id}
                       className={`pilar-sync-row ${isExpanded ? "is-expanded" : ""} ${
                         entry.status === "incident" ? "row-incident" : ""
                       }`}
@@ -509,6 +572,14 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
                         </button>
                       </td>
                     </tr>
+                    {isExpanded && (
+                      <tr className="pilar-sync-detail-row">
+                        <td colSpan={6}>
+                          <SyncDetail entry={entry} onClose={() => setExpandedId(null)} />
+                        </td>
+                      </tr>
+                    )}
+                    </Fragment>
                   );
                 })}
               </tbody>
@@ -516,77 +587,6 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
           </div>
         )}
 
-        {/* Render expanded detail card if active */}
-        {expandedId && (
-          <div className="pilar-sync-drawer">
-            {(() => {
-              const active = history.find((h) => h.id === expandedId);
-              if (!active) return null;
-
-              return (
-                <div className="pilar-sync-drawer__inner">
-                  <div className="pilar-sync-drawer__head">
-                    <div>
-                      <h4 className="pilar-sync-drawer__title">
-                        Reporte detallado: <code>{active.id}</code>
-                      </h4>
-                      <p className="pilar-sync-drawer__subtitle">
-                        Ejecución finalizada el {formatFullDate(active.finishedAt)} ({active.trigger === "manual" ? "Manual" : "Cron automático"}).
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      className="pilar-sync-drawer__close"
-                      onClick={() => setExpandedId(null)}
-                      aria-label="Cerrar reporte"
-                    >
-                      ×
-                    </button>
-                  </div>
-
-                  {active.errors.length > 0 ? (
-                    <div className="pilar-sync-drawer__errors">
-                      <div className="pilar-sync-drawer__error-heading">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="12" r="10" />
-                          <line x1="12" y1="8" x2="12" y2="12" />
-                          <line x1="12" y1="16" x2="12.01" y2="16" />
-                        </svg>
-                        Incidentes detectados ({active.errors.length})
-                      </div>
-                      <ul className="pilar-sync-drawer__error-list">
-                        {active.errors.map((item, idx) => (
-                          <li key={`${item.notionPageId || item.id || "err"}-${idx}`} className="pilar-sync-error-item">
-                            <div className="pilar-sync-error-item__top">
-                              <span className="pilar-sync-error-item__title">{item.title || "Elemento sin título"}</span>
-                              <span className="pilar-sync-error-item__tag">{item.collection || "Colección"}</span>
-                              {item.notionPageId && (
-                                <span className="pilar-sync-error-item__notion-id">Notion: {item.notionPageId}</span>
-                              )}
-                            </div>
-                            <div className="pilar-sync-error-item__msg">
-                              <code>{item.message}</code>
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : (
-                    <div className="pilar-sync-drawer__clean">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                      <div>
-                        <strong>Ejecución limpia y exitosa</strong>
-                        <p>Todos los documentos evaluados se conciliaron correctamente sin fallos ni discrepancias.</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-          </div>
-        )}
       </div>
     </Gutter>
   );

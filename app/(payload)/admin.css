@@ -197,6 +197,12 @@ body:has(.template-default),
   max-width: 680px;
 }
 
+.pilar-sync-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .pilar-sync-btn {
   background: #143534 !important;
   color: #ffffff !important;
@@ -211,6 +217,10 @@ body:has(.template-default),
   background: #1a4441 !important;
   border-color: #8ba892 !important;
   box-shadow: 0 0 16px rgba(139, 168, 146, 0.25) !important;
+}
+
+.pilar-sync-btn--secondary {
+  background: transparent !important;
 }
 
 .pilar-sync-btn__label,
@@ -546,6 +556,14 @@ body:has(.template-default),
 .pilar-sync-table td {
   padding: 14px 18px;
   vertical-align: middle;
+}
+
+.pilar-sync-detail-row td {
+  padding: 0 18px 18px;
+}
+
+.pilar-sync-detail-row .pilar-sync-drawer {
+  margin-top: 0;
 }
 
 /* Status badge */

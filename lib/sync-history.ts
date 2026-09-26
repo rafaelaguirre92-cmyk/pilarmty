@@ -27,6 +27,18 @@ const MANIFEST_PREFIX = "sync-history/manifest-";
 const LEGACY_BLOB_FILENAME = "notion-sync-history.json";
 const LOCAL_PATH = path.resolve(process.cwd(), ".payload/sync-history.json");
 const isVercelRuntime = process.env.VERCEL === "1";
+const HISTORY_RETENTION_MS = 15 * 24 * 60 * 60 * 1000;
+
+export function retainRecentSyncHistory(
+  entries: SyncHistoryEntry[],
+  now = Date.now()
+): SyncHistoryEntry[] {
+  const cutoff = now - HISTORY_RETENTION_MS;
+  return entries.filter((entry) => {
+    const finishedAt = Date.parse(entry.finishedAt);
+    return Number.isFinite(finishedAt) && finishedAt >= cutoff;
+  });
+}
 
 async function readLocalHistory(): Promise<SyncHistoryEntry[]> {
   if (isVercelRuntime) return [];
@@ -138,14 +150,22 @@ export async function getSyncHistory(): Promise<SyncHistoryEntry[]> {
   // 1. Check Vercel Blob in production / if token configured
   const blobHistory = await readBlobHistory();
   if (blobHistory && blobHistory.length > 0) {
-    void writeLocalHistory(blobHistory);
-    return blobHistory;
+    const recent = retainRecentSyncHistory(blobHistory);
+    void writeLocalHistory(recent);
+    if (recent.length !== blobHistory.length) {
+      await writeBlobHistory(recent);
+    }
+    return recent;
   }
 
   // 2. Check local file
   const localHistory = await readLocalHistory();
   if (localHistory.length > 0) {
-    return localHistory;
+    const recent = retainRecentSyncHistory(localHistory);
+    if (recent.length !== localHistory.length) {
+      await writeLocalHistory(recent);
+    }
+    return recent;
   }
 
   return [];
@@ -154,7 +174,10 @@ export async function getSyncHistory(): Promise<SyncHistoryEntry[]> {
 export async function recordSyncRun(entry: SyncHistoryEntry): Promise<SyncHistoryEntry[]> {
   const current = await getSyncHistory();
   // Filter out any potential duplicate id and prepend new entry
-  const updated = [entry, ...current.filter((item) => item.id !== entry.id)].slice(0, 50);
+  const updated = retainRecentSyncHistory([
+    entry,
+    ...current.filter((item) => item.id !== entry.id)
+  ]);
 
   // Write local
   await writeLocalHistory(updated);

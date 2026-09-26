@@ -20,6 +20,7 @@ import {
   propertySelectOption
 } from "../lib/notion";
 import { pickCanonicalMetadataDocument } from "../lib/notion-metadata-repair";
+import { retainRecentSyncHistory } from "../lib/sync-history";
 
 const baseDoc = {
   id: 1,
@@ -35,6 +36,31 @@ test("Payload wins when it has a pending change", () => {
       "2026-08-29T10:00:00.000Z"
     ),
     "payload-to-notion"
+  );
+});
+
+test("sync history retains only the most recent fifteen days", () => {
+  const now = Date.parse("2026-09-26T12:00:00.000Z");
+  const entry = (id: string, finishedAt: string) => ({
+    id,
+    finishedAt,
+    status: "ready" as const,
+    trigger: "manual" as const,
+    payloadToNotion: 0,
+    notionToPayload: 0,
+    createdInNotion: 0,
+    unchanged: 0,
+    skipped: 0,
+    errors: []
+  });
+
+  assert.deepEqual(
+    retainRecentSyncHistory([
+      entry("recent", "2026-09-11T12:00:00.000Z"),
+      entry("expired", "2026-09-11T11:59:59.999Z"),
+      entry("invalid", "not-a-date")
+    ], now).map((item) => item.id),
+    ["recent"]
   );
 });
 
