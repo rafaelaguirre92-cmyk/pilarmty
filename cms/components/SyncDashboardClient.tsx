@@ -12,6 +12,8 @@ type MetadataDuplicateGroup = {
   collection: "series" | "authors" | "topics";
   key: string;
   label: string;
+  kinds?: Array<"series" | "event">;
+  keepKind?: "series" | "event";
   keepId: number | string;
   dropIds: Array<number | string>;
   affectedDocuments: number;
@@ -55,6 +57,7 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
   const [metadataGroups, setMetadataGroups] = useState<MetadataDuplicateGroup[] | null>(null);
   const [metadataLoading, setMetadataLoading] = useState(false);
   const [mergingMetadataKey, setMergingMetadataKey] = useState<string | null>(null);
+  const [metadataKinds, setMetadataKinds] = useState<Record<string, "series" | "event">>({});
 
   const latest = history[0] || null;
 
@@ -124,9 +127,14 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
     }
   }
 
-  async function mergeMetadataGroup(group: MetadataDuplicateGroup) {
+  async function mergeMetadataGroup(
+    group: MetadataDuplicateGroup,
+    kind?: "series" | "event"
+  ) {
     const confirmed = window.confirm(
-      `Se conservará el registro #${group.keepId} de ${group.label} y se enviarán ${group.dropIds.length} duplicado(s) a la papelera. Las relaciones se reasignarán automáticamente.\n\n¿Continuar?`
+      `Se conservará el registro #${group.keepId} de ${group.label}${
+        kind ? ` como ${kind === "series" ? "Serie" : "Evento"}` : ""
+      } y se enviarán ${group.dropIds.length} duplicado(s) a la papelera. Las relaciones se reasignarán automáticamente.\n\n¿Continuar?`
     );
     if (!confirmed) return;
 
@@ -136,7 +144,7 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
       const res = await fetch("/api/notion/repair-metadata-duplicates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ collection: group.collection, key: group.key })
+        body: JSON.stringify({ collection: group.collection, key: group.key, kind })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "No se pudo unir el grupo.");
@@ -252,6 +260,11 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
               {metadataGroups.map((group) => {
                 const requestKey = `${group.collection}:${group.key}`;
                 const isMerging = mergingMetadataKey === requestKey;
+                const selectedKind =
+                  metadataKinds[requestKey] ||
+                  group.keepKind ||
+                  group.kinds?.[0] ||
+                  "series";
                 return (
                   <li key={requestKey} className="pilar-metadata-repair__item">
                     <div>
@@ -261,11 +274,34 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
                         {" · "}conservar #{group.keepId}, archivar {group.dropIds.length}
                         {" · "}{group.affectedDocuments} relación(es)
                       </span>
+                      {group.collection === "series" && (
+                        <label className="pilar-metadata-repair__kind">
+                          Conservar como
+                          <select
+                            disabled={metadataLoading || mergingMetadataKey !== null}
+                            onChange={(event) =>
+                              setMetadataKinds((current) => ({
+                                ...current,
+                                [requestKey]: event.target.value as "series" | "event"
+                              }))
+                            }
+                            value={selectedKind}
+                          >
+                            <option value="series">Serie</option>
+                            <option value="event">Evento</option>
+                          </select>
+                        </label>
+                      )}
                     </div>
                     <Button
                       buttonStyle="secondary"
                       disabled={metadataLoading || mergingMetadataKey !== null}
-                      onClick={() => mergeMetadataGroup(group)}
+                      onClick={() =>
+                        mergeMetadataGroup(
+                          group,
+                          group.collection === "series" ? selectedKind : undefined
+                        )
+                      }
                       type="button"
                     >
                       {isMerging ? "Uniendo…" : "Unir este grupo"}

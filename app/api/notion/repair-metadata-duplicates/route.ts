@@ -35,6 +35,7 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
   const collection = body?.collection;
   const key = body?.key;
+  const kind = body?.kind;
   if (
     !["series", "authors", "topics"].includes(collection) ||
     typeof key !== "string" ||
@@ -42,11 +43,18 @@ export async function POST(request: Request) {
   ) {
     return Response.json({ error: "Grupo de duplicados inválido." }, { status: 400 });
   }
+  if (
+    kind !== undefined &&
+    (collection !== "series" || (kind !== "series" && kind !== "event"))
+  ) {
+    return Response.json({ error: "Tipo de serie inválido." }, { status: 400 });
+  }
 
   const result = await mergeMetadataDuplicateGroup(
     payload,
     collection as MetadataCollection,
-    key
+    key,
+    { kind }
   );
   return Response.json({ ok: true, result });
 }

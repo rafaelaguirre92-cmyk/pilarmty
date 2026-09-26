@@ -71,11 +71,10 @@ export const Series: CollectionConfig = {
     },
     {
       type: "collapsible",
-      label: "Portadas de la serie",
+      label: "Portadas",
       admin: {
-        condition: (_data, siblingData) => siblingData?.kind === "series",
         description:
-          "Carga cada composición por separado para que el sitio elija automáticamente la más adecuada.",
+          "Disponible tanto para series como para eventos. Carga cada composición por separado para que el sitio elija automáticamente la más adecuada.",
         initCollapsed: false
       },
       fields: [

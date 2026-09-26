@@ -21,6 +21,8 @@ export type MetadataDuplicateGroup = {
   collection: MetadataCollection;
   key: string;
   label: string;
+  kinds?: Array<"series" | "event">;
+  keepKind?: "series" | "event";
   keepId: number | string;
   dropIds: Array<number | string>;
   affectedDocuments: number;
@@ -37,7 +39,7 @@ function groupKey(collection: MetadataCollection, doc: MetadataDocument) {
   if (collection === "series") {
     const title = doc.title || doc.slug;
     return title
-      ? `${doc.kind || "series"}:${normalizeMetadataName(title)}`
+      ? normalizeMetadataName(title)
       : "";
   }
   return doc.name ? normalizeMetadataName(doc.name) : "";
@@ -228,6 +230,17 @@ export async function findMetadataDuplicateGroups(payload: Payload) {
         collection,
         key,
         label: displayName(collection, keep),
+        kinds: collection === "series"
+          ? [...new Set(
+              docs
+                .map((doc) => doc.kind)
+                .filter((kind): kind is "series" | "event" => kind === "series" || kind === "event")
+            )]
+          : undefined,
+        keepKind:
+          collection === "series" && (keep.kind === "series" || keep.kind === "event")
+            ? keep.kind
+            : undefined,
         keepId: keep.id,
         dropIds: drop.map((doc) => doc.id),
         affectedDocuments: await affectedCount(payload, collection, dropIds),
@@ -246,7 +259,8 @@ export async function findMetadataDuplicateGroups(payload: Payload) {
 export async function mergeMetadataDuplicateGroup(
   payload: Payload,
   collection: MetadataCollection,
-  key: string
+  key: string,
+  options: { kind?: "series" | "event" } = {}
 ) {
   const group = (await findMetadataDuplicateGroups(payload)).find(
     (item) => item.collection === collection && item.key === key
@@ -267,12 +281,17 @@ export async function mergeMetadataDuplicateGroup(
       context: { skipNotionSync: true, skipAutoTranslate: true }
     });
   }
-  if (group.migrationKey || group.notionPageId) {
+  if (
+    group.migrationKey ||
+    group.notionPageId ||
+    (collection === "series" && options.kind)
+  ) {
     await payload.update({
       collection,
       id: group.keepId,
       data: {
         ...(group.migrationKey ? { migrationKey: group.migrationKey } : {}),
+        ...(collection === "series" && options.kind ? { kind: options.kind } : {}),
         ...(collection === "authors" && group.notionPageId
           ? { notionPageId: group.notionPageId }
           : {})
