@@ -205,7 +205,7 @@ export const markNotionSyncPending: CollectionBeforeChangeHook = ({ data, req })
   if (
     notionIsEditorialSource() || !notionWritebackIsEnabled() ||
     req.context?.skipNotionSync ||
-    req.locale === "en"
+    String(req.locale) === "en"
   ) {
     return data;
   }

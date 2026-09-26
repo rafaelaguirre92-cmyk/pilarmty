@@ -28,7 +28,9 @@ export async function GET(request: Request) {
   const doc = await payload.findByID({
     collection: collection as "series" | "teachings" | "resources",
     id,
-    locale: requestedLocale,
+    // Payload currently serves Spanish only. The public English route may
+    // still preview this Spanish source until localized content is enabled.
+    locale: "es",
     depth: 1,
     draft: true,
     overrideAccess: true

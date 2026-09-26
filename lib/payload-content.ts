@@ -159,29 +159,17 @@ function mapResource(
 
 async function queryTeachings(locale: Locale, preview: boolean) {
   const payload = await getPayload({ config });
-  const alternateLocale: Locale = locale === "es" ? "en" : "es";
-  const [result, alternateResult] = await Promise.all([
-    payload.find({
-      collection: "teachings",
-      locale,
-      fallbackLocale: "es",
-      depth: 2,
-      limit: 1000,
-      sort: "-teachingDate",
-      draft: preview,
-      overrideAccess: preview
-    }),
-    payload.find({
-      collection: "teachings",
-      locale: alternateLocale,
-      fallbackLocale: false,
-      depth: 2,
-      limit: 1000,
-      draft: preview,
-      overrideAccess: preview
-    })
-  ]);
-  const alternates = new Map(alternateResult.docs.map((doc) => [doc.id, doc]));
+  const result = await payload.find({
+    collection: "teachings",
+    locale: "es",
+    fallbackLocale: "es",
+    depth: 2,
+    limit: 1000,
+    sort: "-teachingDate",
+    draft: preview,
+    overrideAccess: preview
+  });
+  const alternates = new Map();
   const datedFirst = [...result.docs].sort((left, right) => {
     const leftTime = left.teachingDate ? Date.parse(left.teachingDate) : Number.NEGATIVE_INFINITY;
     const rightTime = right.teachingDate ? Date.parse(right.teachingDate) : Number.NEGATIVE_INFINITY;
@@ -219,7 +207,7 @@ async function queryCollections(locale: Locale, preview: boolean) {
   const payload = await getPayload({ config });
   const result = await payload.find({
     collection: "series",
-    locale,
+    locale: "es",
     fallbackLocale: "es",
     depth: 1,
     limit: 1000,
@@ -277,29 +265,17 @@ export async function payloadTopicPublicationOverrides() {
 
 async function queryResources(locale: Locale, preview: boolean) {
   const payload = await getPayload({ config });
-  const alternateLocale: Locale = locale === "es" ? "en" : "es";
-  const [result, alternateResult] = await Promise.all([
-    payload.find({
-      collection: "resources",
-      locale,
-      fallbackLocale: "es",
-      depth: 2,
-      limit: 1000,
-      sort: "-contentDate",
-      draft: preview,
-      overrideAccess: preview
-    }),
-    payload.find({
-      collection: "resources",
-      locale: alternateLocale,
-      fallbackLocale: false,
-      depth: 2,
-      limit: 1000,
-      draft: preview,
-      overrideAccess: preview
-    })
-  ]);
-  const alternates = new Map(alternateResult.docs.map((doc) => [doc.id, doc]));
+  const result = await payload.find({
+    collection: "resources",
+    locale: "es",
+    fallbackLocale: "es",
+    depth: 2,
+    limit: 1000,
+    sort: "-contentDate",
+    draft: preview,
+    overrideAccess: preview
+  });
+  const alternates = new Map();
   return result.docs.map((doc) =>
     mapResource(doc, locale, alternates.get(doc.id))
   );

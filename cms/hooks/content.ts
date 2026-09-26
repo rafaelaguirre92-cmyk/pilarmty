@@ -38,7 +38,7 @@ export async function publicPath(
   doc: DocumentData,
   req: PayloadRequest
 ) {
-  const locale = req.locale === "en" ? "en" : "es";
+  const locale = String(req.locale) === "en" ? "en" : "es";
   const prefix = locale === "en" ? "/en" : "";
   const slug = String(doc.slug || "");
   if (!slug) return undefined;
@@ -149,7 +149,7 @@ export const afterEditorialChange = (
         limit: 1000,
         overrideAccess: true
       });
-      const prefix = req.locale === "en" ? "/en" : "";
+      const prefix = String(req.locale) === "en" ? "/en" : "";
       for (const teaching of teachings.docs as unknown as DocumentData[]) {
         const teachingSlug = String(teaching.slug || "");
         if (!teachingSlug) continue;

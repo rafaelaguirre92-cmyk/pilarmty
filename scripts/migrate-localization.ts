@@ -99,7 +99,7 @@ async function main() {
       payload.find({ collection: "teachings", locale: "es", ...query }),
       payload.find({ collection: "series", locale: "es", ...query }),
       payload.find({ collection: "resources", locale: "es", ...query }),
-      payload.find({ collection: "resources", locale: "en", ...query })
+      payload.find({ collection: "resources", locale: "en" as never, ...query })
     ]);
 
   const allTeachings = teachingsResult.docs as unknown as AnyDoc[];
@@ -185,7 +185,7 @@ async function main() {
       await payload.update({
         collection: pair.collection,
         id: pair.es.id,
-        locale: "en",
+        locale: "en" as never,
         data: copyLocalizedFields(pair.collection, pair.en) as never,
         context: {
           skipAutoTranslate: true,
@@ -199,7 +199,7 @@ async function main() {
       const verified = (await payload.findByID({
         collection: pair.collection,
         id: pair.es.id,
-        locale: "en",
+        locale: "en" as never,
         fallbackLocale: false,
         depth: 0,
         overrideAccess: true
