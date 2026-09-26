@@ -1847,10 +1847,10 @@ h3 em {
   min-height: 304px;
   flex-direction: column;
   padding: 32px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(240, 236, 233, 0.24);
   border-radius: var(--radius-lg);
-  background: var(--white);
-  color: var(--navy);
+  background: var(--teal);
+  color: var(--cream);
   transition:
     transform var(--duration-card) var(--ease-editorial),
     border-color var(--duration-fast) var(--ease-gentle),
@@ -1859,12 +1859,21 @@ h3 em {
 
 .home-resource-card:hover {
   transform: translateY(-3px);
-  border-color: var(--accent);
-  box-shadow: 0 12px 32px rgba(20, 37, 52, 0.08);
+  border-color: rgba(240, 236, 233, 0.5);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
 }
 
 .home-resource-card h3 {
   font-size: clamp(24px, 6vw, 30px);
+}
+
+.home-resource-card .eyebrow {
+  color: var(--sage);
+}
+
+.home-resource-card > p:not(.eyebrow),
+.home-resource-card .card-meta {
+  color: rgba(240, 236, 233, 0.76);
 }
 
 .home-content-empty {
