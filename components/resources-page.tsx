@@ -254,15 +254,7 @@ export async function ResourcesPage({
       ? a.date.localeCompare(b.date)
       : b.date.localeCompare(a.date)
   );
-  const clearCatalogFiltersParams = new URLSearchParams();
-  if (selectedFilter !== "todo") {
-    clearCatalogFiltersParams.set("tipo", selectedFilter);
-  }
-  if (query?.trim()) clearCatalogFiltersParams.set("q", query.trim());
-  const clearCatalogFiltersSearch = clearCatalogFiltersParams.toString();
-  const clearCatalogFiltersPath = clearCatalogFiltersSearch
-    ? `${resourcePath}?${clearCatalogFiltersSearch}`
-    : resourcePath;
+  const clearCatalogFiltersPath = resourcePath;
   const catalogPaginationKey = [
     selectedFilter,
     series || "",
