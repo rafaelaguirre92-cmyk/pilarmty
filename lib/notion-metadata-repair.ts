@@ -9,6 +9,7 @@ type MetadataDocument = {
   name?: string | null;
   title?: string | null;
   slug?: string | null;
+  kind?: string | null;
   migrationKey?: string | null;
   notionPageId?: string | null;
   _status?: "draft" | "published" | null;
@@ -34,7 +35,10 @@ function displayName(collection: MetadataCollection, doc: MetadataDocument) {
 
 function groupKey(collection: MetadataCollection, doc: MetadataDocument) {
   if (collection === "series") {
-    return doc.slug ? normalizeMetadataName(doc.slug) : "";
+    const title = doc.title || doc.slug;
+    return title
+      ? `${doc.kind || "series"}:${normalizeMetadataName(title)}`
+      : "";
   }
   return doc.name ? normalizeMetadataName(doc.name) : "";
 }
