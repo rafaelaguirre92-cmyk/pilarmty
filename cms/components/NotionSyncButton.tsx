@@ -76,7 +76,7 @@ export function NotionSyncButton({ enabled }: { enabled: boolean }) {
       </Button>
       {!enabled ? (
         <p className="creator-sync-message is-warning">
-          Configura la conexión de Notion para activar esta función.
+          Configura el token de Notion y habilita la escritura para activar esta función.
         </p>
       ) : null}
       {error ? <p className="creator-sync-message is-error">{error}</p> : null}

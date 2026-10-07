@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notionIsConfigured } from "@/lib/notion";
+import { notionIsConfigured, notionWritebackIsEnabled } from "@/lib/notion";
 import { NotionSyncButton } from "./NotionSyncButton";
 
 export function NotionSyncPanel() {
@@ -8,13 +8,13 @@ export function NotionSyncPanel() {
       <div className="pilar-notion-sync-panel__header">
         <div>
           <h2>Sincronización con Notion</h2>
-          <p>Importa los cambios de Notion al portal. El estado de cada documento aparece en sus campos de sincronización.</p>
+          <p>Sincroniza los cambios entre Notion y el portal. El estado de cada documento aparece en sus campos de sincronización.</p>
         </div>
         <Link href="/admin/sincronizacion" className="pilar-notion-sync-panel__history-link">
           Ver historial completo en Tablero →
         </Link>
       </div>
-      <NotionSyncButton enabled={notionIsConfigured()} />
+      <NotionSyncButton enabled={notionIsConfigured() && notionWritebackIsEnabled()} />
     </section>
   );
 }
