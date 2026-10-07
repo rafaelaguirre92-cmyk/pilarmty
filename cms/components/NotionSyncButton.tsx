@@ -46,7 +46,7 @@ export function NotionSyncButton({ enabled }: { enabled: boolean }) {
       const body = await response.json();
       if (response.status === 401) {
         setSessionExpired(true);
-        throw new Error("Tu sesión de Payload terminó. Inicia sesión de nuevo para sincronizar.");
+        throw new Error("Payload no pudo validar tu sesión para sincronizar. Recarga el panel o vuelve a iniciar sesión.");
       }
       if (!response.ok && response.status !== 207) {
         throw new Error(body.error || "No se pudo completar la sincronización.");

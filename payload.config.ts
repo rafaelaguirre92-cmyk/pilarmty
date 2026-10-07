@@ -25,6 +25,11 @@ const siteUrl =
   process.env.SITE_URL ||
   process.env.NEXT_PUBLIC_SITE_URL ||
   "http://localhost:3000";
+const allowedOrigins = Array.from(new Set([
+  new URL(siteUrl).origin,
+  "https://www.iglesiapilar.mx",
+  "https://iglesiapilar.mx"
+]));
 const databaseUrl = resolveDatabaseUrl();
 
 const db = databaseUrl
@@ -87,8 +92,8 @@ export default buildConfig({
     importMap: { baseDir: dirname }
   },
   collections: [Teachings, Resources, Media, Authors, Topics, Series, Users, Redirects],
-  cors: [siteUrl],
-  csrf: [siteUrl],
+  cors: allowedOrigins,
+  csrf: allowedOrigins,
   db,
   editor: lexicalEditor(),
   email: process.env.RESEND_API_KEY

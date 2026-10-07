@@ -136,7 +136,7 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
 
       if (res.status === 401) {
         setSessionExpired(true);
-        throw new Error("Tu sesión de Payload terminó. Inicia sesión de nuevo para sincronizar.");
+        throw new Error("Payload no pudo validar tu sesión para sincronizar. Recarga el panel o vuelve a iniciar sesión.");
       }
 
       if (!res.ok && res.status !== 207) {
