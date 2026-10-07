@@ -9119,6 +9119,10 @@ body.resource-filters-open {
   box-shadow: 0 16px 48px rgba(20, 37, 52, 0.1);
 }
 
+:root[data-theme="dark"] .teaching-video-frame {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+
 .teaching-video-frame iframe {
   display: block;
   width: 100%;
