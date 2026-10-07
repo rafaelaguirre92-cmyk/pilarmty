@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@payloadcms/ui";
 
@@ -33,14 +34,20 @@ export function NotionSyncButton({ enabled }: { enabled: boolean }) {
   const [running, setRunning] = useState(false);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   async function synchronize() {
     setRunning(true);
     setError(null);
+    setSessionExpired(false);
     setSummary(null);
     try {
       const response = await fetch("/api/notion/sync", { method: "POST" });
       const body = await response.json();
+      if (response.status === 401) {
+        setSessionExpired(true);
+        throw new Error("Tu sesión de Payload terminó. Inicia sesión de nuevo para sincronizar.");
+      }
       if (!response.ok && response.status !== 207) {
         throw new Error(body.error || "No se pudo completar la sincronización.");
       }
@@ -69,10 +76,15 @@ export function NotionSyncButton({ enabled }: { enabled: boolean }) {
       </Button>
       {!enabled ? (
         <p className="creator-sync-message is-warning">
-          Configura el token de Notion y habilita la escritura para activar esta función.
+          Configura la conexión de Notion para activar esta función.
         </p>
       ) : null}
       {error ? <p className="creator-sync-message is-error">{error}</p> : null}
+      {sessionExpired ? (
+        <p className="creator-sync-message">
+          <Link href="/admin/login?redirect=%2Fadmin">Ir a iniciar sesión</Link>
+        </p>
+      ) : null}
       {summary ? (
         <div className={`creator-sync-result${summary.errors.length ? " has-errors" : ""}`} aria-live="polite">
           <strong>{summary.errors.length ? "Sincronización terminada con avisos" : "Sincronización completada"}</strong>

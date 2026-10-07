@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Fragment, useState } from "react";
 import { Button, Gutter, SetStepNav } from "@payloadcms/ui";
 import type { SyncHistoryEntry } from "@/lib/sync-history";
@@ -120,16 +121,23 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
   const [metadataLoading, setMetadataLoading] = useState(false);
   const [mergingMetadataKey, setMergingMetadataKey] = useState<string | null>(null);
   const [metadataKinds, setMetadataKinds] = useState<Record<string, "series" | "event">>({});
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   const latest = history[0] || null;
 
   async function handleSyncNow() {
     setSyncing(true);
     setFeedback(null);
+    setSessionExpired(false);
 
     try {
       const res = await fetch("/api/notion/sync", { method: "POST" });
       const data = await res.json();
+
+      if (res.status === 401) {
+        setSessionExpired(true);
+        throw new Error("Tu sesión de Payload terminó. Inicia sesión de nuevo para sincronizar.");
+      }
 
       if (!res.ok && res.status !== 207) {
         throw new Error(data.error || "Error al ejecutar la sincronización.");
@@ -306,6 +314,11 @@ export function SyncDashboardClient({ initialHistory }: SyncDashboardClientProps
           <div className="pilar-sync-alert__text">{feedback.message}</div>
         </div>
       )}
+      {sessionExpired ? (
+        <p className="pilar-sync-alert pilar-sync-alert--error">
+          <Link href="/admin/login?redirect=%2Fadmin%2Fsincronizacion">Ir a iniciar sesión</Link>
+        </p>
+      ) : null}
 
       {metadataGroups !== null && (
         <section className="pilar-metadata-repair" aria-labelledby="metadata-duplicates-title">
