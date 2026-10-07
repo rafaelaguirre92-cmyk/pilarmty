@@ -4,7 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { AdminViewServerProps } from "payload";
 
-import { notionIsConfigured, notionWritebackIsEnabled } from "@/lib/notion";
+import { notionIsConfigured } from "@/lib/notion";
 
 import { NotionSyncButton } from "./NotionSyncButton";
 
@@ -55,7 +55,7 @@ export async function CreatorSettingsView(props: AdminViewServerProps) {
       href: `/admin/collections/resources/${doc.id}`
     }))
   ];
-  const enabled = notionIsConfigured() && notionWritebackIsEnabled();
+  const enabled = notionIsConfigured();
   const cronConfigured = Boolean(process.env.CRON_SECRET);
 
   return (
@@ -80,9 +80,8 @@ export async function CreatorSettingsView(props: AdminViewServerProps) {
                 {cronConfigured
                   ? "Se ejecuta automáticamente una vez al día. "
                   : "La sincronización manual está disponible; el horario diario se activará al configurar CRON_SECRET en Vercel. "}
-                La carga inicial viene de Notion. Después, Payload es la fuente de verdad:
-                lo nuevo en Notion se importa, lo nuevo en Payload se crea en Notion,
-                y si hay incidencia prevalece Payload.
+                Notion es la fuente editorial. Sus autores y contenidos se importan a Payload;
+                los cambios editoriales deben hacerse en Notion.
               </p>
               <dl className="creator-sync-facts">
                 <div><dt>Última sincronización</dt><dd>{formatDate(latest)}</dd></div>

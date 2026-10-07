@@ -76,7 +76,7 @@ export function NotionSyncButton({ enabled }: { enabled: boolean }) {
       </Button>
       {!enabled ? (
         <p className="creator-sync-message is-warning">
-          Configura el token de Notion y habilita la escritura para activar esta función.
+          Configura la conexión de Notion para activar esta función.
         </p>
       ) : null}
       {error ? <p className="creator-sync-message is-error">{error}</p> : null}
@@ -89,8 +89,7 @@ export function NotionSyncButton({ enabled }: { enabled: boolean }) {
         <div className={`creator-sync-result${summary.errors.length ? " has-errors" : ""}`} aria-live="polite">
           <strong>{summary.errors.length ? "Sincronización terminada con avisos" : "Sincronización completada"}</strong>
           <p>
-            {summary.payloadToNotion + summary.createdInNotion} enviados a Notion · {summary.notionToPayload} importados a Payload · {summary.unchanged} sin cambios
-            {summary.conflictsResolved ? ` · ${summary.conflictsResolved} conflictos a favor de Payload` : ""}
+            {summary.notionToPayload} importados a Payload
             {summary.skipped ? ` · ${summary.skipped} omitidos` : ""}
           </p>
           {skipDetails ? <p>Omitidos: {skipDetails}.</p> : null}
