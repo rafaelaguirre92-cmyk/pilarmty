@@ -259,7 +259,7 @@ export async function TeachingPage({
                   <iframe
                     allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                     className="teaching-audio-iframe"
-                    height="150"
+                    height="80"
                     loading="lazy"
                     sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation"
                     src={spotifyEmbed}
