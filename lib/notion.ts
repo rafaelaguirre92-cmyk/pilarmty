@@ -44,26 +44,76 @@ export function notionIsConfigured() {
   return Boolean(token && token !== "empty" && token !== "changeme");
 }
 
+// Keep a little headroom below Notion's 180 requests/minute budget for
+// connections on non-Business plans. All requests in this process share it.
+const notionRequestIntervalMs = 500;
+const notionMaxAttempts = 6;
+let nextNotionRequestAt = 0;
+let notionPauseUntil = 0;
+let notionRequestQueue = Promise.resolve();
+
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForNotionRequestSlot() {
+  const slot = notionRequestQueue.then(async () => {
+    const waitMs = Math.max(nextNotionRequestAt, notionPauseUntil) - Date.now();
+    if (waitMs > 0) await sleep(waitMs);
+    nextNotionRequestAt = Date.now() + notionRequestIntervalMs;
+  });
+  notionRequestQueue = slot.catch(() => undefined);
+  await slot;
+}
+
+function retryAfterMs(response: Response, body: string, attempt: number) {
+  let seconds = Number(response.headers.get("retry-after"));
+  if (!Number.isFinite(seconds) || seconds < 0 || !response.headers.has("retry-after")) {
+    try {
+      const parsed = JSON.parse(body) as { additional_data?: { retry_after?: string } };
+      seconds = Number(parsed.additional_data?.retry_after);
+    } catch {
+      seconds = NaN;
+    }
+  }
+  const baseMs = Number.isFinite(seconds) && seconds >= 0
+    ? seconds * 1000
+    : Math.min(2 ** attempt, 30) * 1000;
+  return baseMs + Math.floor(Math.random() * 250);
+}
+
 async function notionFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const token = process.env.NOTION_API_TOKEN;
   if (!notionIsConfigured()) throw new Error("NOTION_API_TOKEN is not configured");
 
-  const response = await fetch(`https://api.notion.com/v1${path}`, {
-    ...init,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Notion-Version": apiVersion,
-      "Content-Type": "application/json",
-      ...init?.headers
-    },
-    cache: "no-store"
-  });
+  for (let attempt = 0; attempt < notionMaxAttempts; attempt += 1) {
+    await waitForNotionRequestSlot();
+    const response = await fetch(`https://api.notion.com/v1${path}`, {
+      ...init,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Notion-Version": apiVersion,
+        "Content-Type": "application/json",
+        ...init?.headers
+      },
+      cache: "no-store"
+    });
 
-  if (!response.ok) {
-    throw new Error(`Notion ${response.status}: ${await response.text()}`);
+    if (response.ok) return response.json() as Promise<T>;
+
+    const body = await response.text();
+    const blocked = body.includes('"public_api_request_blocked"');
+    if ((response.status === 429 && !blocked) || response.status === 529) {
+      if (attempt < notionMaxAttempts - 1) {
+        const waitMs = retryAfterMs(response, body, attempt);
+        notionPauseUntil = Math.max(notionPauseUntil, Date.now() + waitMs);
+        continue;
+      }
+    }
+    throw new Error(`Notion ${response.status}: ${body}`);
   }
 
-  return response.json() as Promise<T>;
+  throw new Error("Notion: se agotaron los reintentos.");
 }
 
 export function notionDataSourceId() {
