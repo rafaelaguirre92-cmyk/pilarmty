@@ -11,7 +11,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/admin/", "/api/", "/buscar?", "/en/search?"]
       }
     ],
-    sitemap: [absoluteUrl("/sitemap-es.xml"), absoluteUrl("/sitemap-en.xml")],
-    host: absoluteUrl("/")
+    sitemap: absoluteUrl("/sitemap.xml")
   };
 }
