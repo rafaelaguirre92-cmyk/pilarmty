@@ -9172,6 +9172,11 @@ body.resource-filters-open {
     height: max(200px, calc(56.25vw - 18px));
     transform: none;
     animation: none;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
+  }
+
+  .teaching-audio-frame.is-floating {
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
   }
 }
 
