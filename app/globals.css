@@ -9107,6 +9107,7 @@ body.resource-filters-open {
 
 .teaching-video-wrapper {
   display: grid;
+  aspect-ratio: 16 / 9;
   gap: 12px;
 }
 
@@ -9121,6 +9122,61 @@ body.resource-filters-open {
 
 :root[data-theme="dark"] .teaching-video-frame {
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+
+.teaching-video-frame.is-floating {
+  position: fixed;
+  z-index: 49;
+  top: 72px;
+  left: 50%;
+  width: min(320px, calc(100vw - 32px));
+  height: 200px;
+  aspect-ratio: auto;
+  transform: translateX(-50%);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
+}
+
+:root[data-theme="dark"] .teaching-video-frame.is-floating {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.58);
+}
+
+.teaching-video-floating-dismiss {
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  right: 8px;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  background: rgba(20, 37, 52, 0.88);
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.teaching-video-floating-dismiss:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+@media (min-width: 720px) {
+  .teaching-video-frame.is-floating {
+    top: 88px;
+  }
+}
+
+@media (min-width: 980px) {
+  .teaching-video-frame.is-floating {
+    top: 104px;
+    left: max(24px, calc((100vw - 1080px) / 2));
+    width: 320px;
+    transform: none;
+  }
 }
 
 .teaching-video-frame iframe {
@@ -9237,8 +9293,8 @@ body.resource-filters-open {
 
 @media (min-width: 980px) {
   .teaching-body-grid {
-    grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
-    gap: clamp(48px, 6vw, 84px);
+    grid-template-columns: 320px minmax(0, 1fr);
+    gap: clamp(32px, 5vw, 64px);
   }
 }
 
@@ -9251,6 +9307,10 @@ body.resource-filters-open {
     display: block;
     position: sticky;
     top: 104px;
+  }
+
+  :root.has-floating-teaching-video .teaching-body-aside {
+    top: 328px;
   }
 }
 
