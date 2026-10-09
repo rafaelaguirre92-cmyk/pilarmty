@@ -35,6 +35,8 @@ export function TeachingMedia({
   const [activeMedia, setActiveMedia] = useState<MediaKind | null>(null);
   const [isFloating, setIsFloating] = useState(false);
   const mediaRef = useRef<HTMLDivElement>(null);
+  const videoSlotRef = useRef<HTMLDivElement>(null);
+  const audioSlotRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLIFrameElement>(null);
   const spotifyRef = useRef<HTMLDivElement>(null);
   const youtubePlayerRef = useRef<YouTubePlayerInstance | null>(null);
@@ -117,9 +119,21 @@ export function TeachingMedia({
     const updateFloating = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        const headerHeight = window.innerWidth >= 980 ? 96 : window.innerWidth >= 720 ? 80 : 64;
+        if (!activeMedia) {
+          setIsFloating(false);
+          return;
+        }
+
+        if (window.innerWidth < 720) {
+          const slot = activeMedia === "video" ? videoSlotRef.current : audioSlotRef.current;
+          const slotTop = slot?.getBoundingClientRect().top;
+          setIsFloating(slotTop !== undefined && slotTop <= 64);
+          return;
+        }
+
+        const headerHeight = window.innerWidth >= 980 ? 96 : 80;
         const mediaBottom = mediaRef.current?.getBoundingClientRect().bottom;
-        setIsFloating(Boolean(activeMedia && mediaBottom !== undefined && mediaBottom <= headerHeight + 8));
+        setIsFloating(mediaBottom !== undefined && mediaBottom <= headerHeight + 8);
       });
     };
 
@@ -165,7 +179,7 @@ export function TeachingMedia({
       {youtubeEmbed && (
         <section className="teaching-video-section">
           <div className="container teaching-video-container">
-            <div className="teaching-video-wrapper">
+            <div className="teaching-video-wrapper" ref={videoSlotRef}>
               <div className={`teaching-video-frame${isFloating && activeMedia === "video" ? " is-floating" : ""}`}>
                 {videoSrc ? (
                   <iframe
@@ -210,7 +224,7 @@ export function TeachingMedia({
       {spotifyEmbed && spotifyUri && (
         <section className="teaching-audio-section">
           <div className="container teaching-audio-container">
-            <div className="teaching-audio-slot">
+            <div className="teaching-audio-slot" ref={audioSlotRef}>
               <div className={`teaching-audio-frame${isFloating && activeMedia === "spotify" ? " is-floating" : ""}`}>
                 {spotifyFallback ? (
                   <iframe
