@@ -9192,6 +9192,10 @@ body.resource-filters-open {
 }
 
 @media (min-width: 720px) {
+  .teaching-video-floating-dismiss {
+    display: none;
+  }
+
   .teaching-video-frame.is-floating {
     top: 88px;
   }
