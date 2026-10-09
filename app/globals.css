@@ -9155,30 +9155,6 @@ body.resource-filters-open {
   box-shadow: none;
 }
 
-.teaching-video-floating-dismiss {
-  position: absolute;
-  z-index: 2;
-  top: 8px;
-  right: 8px;
-  display: grid;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 50%;
-  background: rgba(20, 37, 52, 0.88);
-  color: #fff;
-  font-size: 26px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.teaching-video-floating-dismiss:focus-visible {
-  outline: 3px solid var(--focus);
-  outline-offset: 2px;
-}
-
 @media (max-width: 719px) {
   .teaching-video-wrapper {
     height: max(200px, calc(56.25vw - 18px));
@@ -9190,7 +9166,7 @@ body.resource-filters-open {
   }
 
   .teaching-video-frame.is-floating {
-    top: 64px;
+    top: 76px;
     left: 16px;
     width: calc(100vw - 32px);
     height: max(200px, calc(56.25vw - 18px));
@@ -9200,10 +9176,6 @@ body.resource-filters-open {
 }
 
 @media (min-width: 720px) {
-  .teaching-video-floating-dismiss {
-    display: none;
-  }
-
   .teaching-video-frame.is-floating {
     top: 88px;
   }
@@ -9343,14 +9315,9 @@ body.resource-filters-open {
   box-shadow: none;
 }
 
-.teaching-audio-frame.is-floating .teaching-video-floating-dismiss {
-  left: 8px;
-  right: auto;
-}
-
 @media (max-width: 719px) {
   .teaching-audio-frame.is-floating {
-    top: 64px;
+    top: 76px;
     left: 16px;
     width: calc(100vw - 32px);
     transform: none;
@@ -9361,16 +9328,17 @@ body.resource-filters-open {
   .teaching-media-mobile-fade {
     position: fixed;
     z-index: 48;
-    top: calc(64px + 80px);
+    top: 116px;
     left: 16px;
     width: calc(100vw - 32px);
     height: 40px;
     pointer-events: none;
-    background: linear-gradient(to bottom, var(--background), transparent);
+    background: linear-gradient(to bottom, transparent, var(--background));
   }
 
   .teaching-media-mobile-fade[data-media="video"] {
-    top: calc(64px + max(200px, calc(56.25vw - 18px)));
+    top: calc(76px + max(100px, calc(28.125vw - 9px)));
+    height: max(100px, calc(28.125vw - 9px));
   }
 }
 

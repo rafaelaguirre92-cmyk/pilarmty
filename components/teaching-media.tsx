@@ -166,14 +166,6 @@ export function TeachingMedia({
     setVideoSrc(url.toString());
   };
 
-  const dismissFloating = () => {
-    if (activeMediaRef.current === "video") youtubePlayerRef.current?.pauseVideo();
-    else spotifyPlayerRef.current?.pause();
-    activeMediaRef.current = null;
-    setActiveMedia(null);
-    setIsFloating(false);
-  };
-
   return (
     <div className="teaching-media-group" ref={mediaRef}>
       {youtubeEmbed && (
@@ -205,16 +197,6 @@ export function TeachingMedia({
                     </span>
                   </button>
                 )}
-                {isFloating && activeMedia === "video" && (
-                  <button
-                    aria-label={locale === "es" ? "Cerrar video flotante" : "Close floating video"}
-                    className="teaching-video-floating-dismiss"
-                    onClick={dismissFloating}
-                    type="button"
-                  >
-                    <span aria-hidden="true">×</span>
-                  </button>
-                )}
               </div>
             </div>
           </div>
@@ -244,16 +226,6 @@ export function TeachingMedia({
                       </span>
                     )}
                   </>
-                )}
-                {isFloating && activeMedia === "spotify" && (
-                  <button
-                    aria-label={locale === "es" ? "Cerrar audio flotante" : "Close floating audio"}
-                    className="teaching-video-floating-dismiss"
-                    onClick={dismissFloating}
-                    type="button"
-                  >
-                    <span aria-hidden="true">×</span>
-                  </button>
                 )}
               </div>
             </div>
