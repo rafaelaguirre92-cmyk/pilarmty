@@ -8,7 +8,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { TeachingCard } from "@/components/teaching-card";
 import { TeachingToc } from "@/components/teaching-toc";
-import { TeachingVideoPlayer } from "@/components/teaching-video-player";
+import { TeachingMedia } from "@/components/teaching-media";
 import { extractArticleHeadings } from "@/lib/article-headings";
 import { extractBibleReferences } from "@/lib/bible";
 import {
@@ -19,7 +19,7 @@ import {
   getTopicPublicationOverrides
 } from "@/lib/content";
 import { formatDate, localePath } from "@/lib/site";
-import { spotifyEpisodeEmbedUrl } from "@/lib/spotify";
+import { spotifyEpisodeEmbedUrl, spotifyEpisodeId } from "@/lib/spotify";
 import { getPublishedTopicSlugs, topicSlug } from "@/lib/topics";
 import type { Locale } from "@/lib/types";
 
@@ -95,6 +95,7 @@ export async function TeachingPage({
   const youtubeEmbed = youtubeEmbedUrl(teaching.youtubeUrl);
   const youtubePoster = youtubePosterUrl(teaching.youtubeUrl);
   const spotifyEmbed = spotifyEpisodeEmbedUrl(teaching.spotifyUrl);
+  const spotifyId = spotifyEpisodeId(teaching.spotifyUrl);
   const headings = extractArticleHeadings({
     blocks: teaching.blocks,
     body: teaching.body
@@ -239,35 +240,15 @@ export async function TeachingPage({
             </div>
           </header>
 
-          {youtubeEmbed && (
-            <section className="teaching-video-section">
-              <div className="container teaching-video-container">
-                <TeachingVideoPlayer
-                  locale={locale}
-                  title={teaching.title}
-                  youtubeEmbed={youtubeEmbed}
-                  youtubePoster={youtubePoster}
-                />
-              </div>
-            </section>
-          )}
-
-          {spotifyEmbed && (
-            <section className="teaching-audio-section">
-              <div className="container teaching-audio-container">
-                <div className="teaching-audio-frame">
-                  <iframe
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    className="teaching-audio-iframe"
-                    height="80"
-                    loading="lazy"
-                    sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation"
-                    src={spotifyEmbed}
-                    title={`${teaching.title} · Spotify`}
-                  />
-                </div>
-              </div>
-            </section>
+          {(youtubeEmbed || spotifyEmbed) && (
+            <TeachingMedia
+              locale={locale}
+              title={teaching.title}
+              youtubeEmbed={youtubeEmbed}
+              youtubePoster={youtubePoster}
+              spotifyEmbed={spotifyEmbed}
+              spotifyUri={spotifyId ? `spotify:episode:${spotifyId}` : undefined}
+            />
           )}
 
           <div className="container teaching-body-container">

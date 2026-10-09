@@ -12,6 +12,7 @@ export function TeachingToc({
   locale: Locale;
 }) {
   const [activeId, setActiveId] = useState<string>("");
+  const [hasEntered, setHasEntered] = useState(false);
   const isManualScrollRef = useRef<boolean>(false);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -52,6 +53,29 @@ export function TeachingToc({
     };
   }, [headings]);
 
+  useEffect(() => {
+    let frame = 0;
+    const updateEntrance = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const media = document.querySelector(".teaching-media-group");
+        const body = document.querySelector(".teaching-body-container");
+        const boundaryPassed = media
+          ? media.getBoundingClientRect().bottom <= 104
+          : Boolean(body && body.getBoundingClientRect().top <= 104);
+        if (boundaryPassed) {
+          setHasEntered(true);
+        }
+      });
+    };
+    updateEntrance();
+    window.addEventListener("scroll", updateEntrance, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", updateEntrance);
+    };
+  }, []);
+
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
     e.preventDefault();
     const target = document.getElementById(id);
@@ -73,7 +97,7 @@ export function TeachingToc({
   return (
     <aside
       aria-label={locale === "es" ? "En esta entrada" : "Table of contents"}
-      className="teaching-toc"
+      className={`teaching-toc${hasEntered ? " is-entered" : ""}`}
     >
       <p className="eyebrow teaching-toc-title">
         {locale === "es" ? "En esta entrada" : "In this article"}

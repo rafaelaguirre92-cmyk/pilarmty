@@ -9133,7 +9133,7 @@ body.resource-filters-open {
   height: 200px;
   aspect-ratio: auto;
   transform: translateX(-50%);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.28);
+  box-shadow: none;
   animation: teaching-video-float-in 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
@@ -9152,7 +9152,7 @@ body.resource-filters-open {
 }
 
 :root[data-theme="dark"] .teaching-video-frame.is-floating {
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.58);
+  box-shadow: none;
 }
 
 .teaching-video-floating-dismiss {
@@ -9187,6 +9187,7 @@ body.resource-filters-open {
     height: max(200px, 56.25vw);
     border-radius: 0;
     transform: none;
+    animation: none;
   }
 }
 
@@ -9293,6 +9294,95 @@ body.resource-filters-open {
   background: var(--surface);
 }
 
+.teaching-audio-slot {
+  height: 80px;
+}
+
+.teaching-audio-controller,
+.teaching-audio-controller iframe {
+  display: block;
+  width: 100%;
+  height: 80px;
+  border: 0;
+}
+
+.teaching-audio-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--text-soft);
+  font-size: 14px;
+}
+
+.teaching-audio-frame.is-floating {
+  position: fixed;
+  z-index: 49;
+  top: 72px;
+  left: 50%;
+  width: min(320px, calc(100vw - 32px));
+  transform: translateX(-50%);
+  border-radius: 12px;
+  box-shadow: none;
+  animation: teaching-video-float-in 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+:root[data-theme="dark"] .teaching-audio-frame.is-floating {
+  box-shadow: none;
+}
+
+.teaching-audio-frame.is-floating .teaching-video-floating-dismiss {
+  left: 8px;
+  right: auto;
+}
+
+@media (max-width: 719px) {
+  .teaching-audio-frame.is-floating {
+    top: 64px;
+    left: 0;
+    width: 100%;
+    transform: none;
+    border-radius: 0;
+    animation: none;
+  }
+
+  .teaching-media-mobile-fade {
+    position: fixed;
+    z-index: 48;
+    top: calc(64px + 80px);
+    left: 0;
+    width: 100%;
+    height: 40px;
+    pointer-events: none;
+    background: linear-gradient(to bottom, var(--background), transparent);
+  }
+
+  .teaching-media-mobile-fade[data-media="video"] {
+    top: calc(64px + max(200px, 56.25vw));
+  }
+}
+
+@media (min-width: 720px) {
+  .teaching-audio-frame.is-floating {
+    top: 88px;
+  }
+}
+
+@media (min-width: 980px) {
+  .teaching-audio-frame.is-floating {
+    top: 104px;
+    left: max(24px, calc((100vw - 1080px) / 2));
+    width: 320px;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .teaching-audio-frame.is-floating {
+    animation: none;
+  }
+}
+
 :root[data-theme="dark"] .teaching-audio-frame {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
   background: #111d27;
@@ -9343,6 +9433,32 @@ body.resource-filters-open {
 
   :root.has-floating-teaching-video .teaching-body-aside {
     top: 328px;
+  }
+
+  :root.has-floating-teaching-audio .teaching-body-aside {
+    top: 208px;
+  }
+
+  .teaching-toc.is-entered {
+    animation: teaching-toc-enter 280ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+}
+
+@keyframes teaching-toc-enter {
+  from {
+    opacity: 0;
+    translate: 0 12px;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .teaching-toc.is-entered {
+    animation: none;
   }
 }
 
