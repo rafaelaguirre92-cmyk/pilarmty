@@ -127,7 +127,7 @@ export function TeachingMedia({
         if (window.innerWidth < 720) {
           const slot = activeMedia === "video" ? videoSlotRef.current : audioSlotRef.current;
           const slotTop = slot?.getBoundingClientRect().top;
-          setIsFloating(slotTop !== undefined && slotTop <= 64);
+          setIsFloating(slotTop !== undefined && slotTop <= 76);
           return;
         }
 
