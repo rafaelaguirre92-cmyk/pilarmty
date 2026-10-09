@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /buscar?
+Disallow: /en/search?
+
+Sitemap: https://www.iglesiapilar.mx/sitemap.xml
