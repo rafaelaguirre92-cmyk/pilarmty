@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 
 import { Analytics } from "@/components/analytics";
 import { ScrollParallax } from "@/components/scroll-parallax";
@@ -48,6 +49,7 @@ export default function RootLayout({
         <ScrollParallax />
         {children}
         <Analytics />
+        <VercelAnalytics />
       </body>
     </html>
   );
