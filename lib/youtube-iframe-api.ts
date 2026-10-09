@@ -11,7 +11,7 @@ type YouTubeApi = {
       events: {
         onReady: (event: { target: YouTubePlayerInstance }) => void;
         onStateChange: (event: { data: number }) => void;
-        onAutoplayBlocked: () => void;
+        onAutoplayBlocked?: () => void;
       };
     }
   ) => YouTubePlayerInstance;

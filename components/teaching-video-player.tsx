@@ -20,7 +20,7 @@ export function TeachingVideoPlayer({
   locale: Locale;
 }) {
   const [playerSrc, setPlayerSrc] = useState<string>();
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [hasPlayed, setHasPlayed] = useState(false);
   const [isFloating, setIsFloating] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -35,20 +35,11 @@ export function TeachingVideoPlayer({
       playerRef.current = new api.Player(iframeRef.current, {
         events: {
           onReady: ({ target }) => {
-            const playing = target.getPlayerState() === 1;
-            setIsPlaying(playing);
-            if (!playing) setIsFloating(false);
+            if (target.getPlayerState() === 1) setHasPlayed(true);
           },
           onStateChange: ({ data }) => {
-            if (data === 1) setIsPlaying(true);
-            else if (data === 0 || data === 2 || data === 5 || data === -1) {
-              setIsPlaying(false);
-              setIsFloating(false);
-            }
-          },
-          onAutoplayBlocked: () => {
-            setIsPlaying(false);
-            setIsFloating(false);
+            if (data === 1) setHasPlayed(true);
+            if (data === 0) setHasPlayed(false);
           }
         }
       });
@@ -64,7 +55,7 @@ export function TeachingVideoPlayer({
   }, [playerSrc]);
 
   useEffect(() => {
-    if (!isPlaying) return;
+    if (!hasPlayed) return;
 
     let frame = 0;
     const updateFloating = () => {
@@ -84,7 +75,7 @@ export function TeachingVideoPlayer({
       window.removeEventListener("scroll", updateFloating);
       window.removeEventListener("resize", updateFloating);
     };
-  }, [isPlaying]);
+  }, [hasPlayed]);
 
   useEffect(() => {
     document.documentElement.classList.toggle("has-floating-teaching-video", isFloating);
@@ -133,11 +124,11 @@ export function TeachingVideoPlayer({
         )}
         {isFloating && (
           <button
-            aria-label={locale === "es" ? "Pausar y cerrar video flotante" : "Pause and close floating video"}
+            aria-label={locale === "es" ? "Cerrar video flotante" : "Close floating video"}
             className="teaching-video-floating-dismiss"
             onClick={() => {
               playerRef.current?.pauseVideo();
-              setIsPlaying(false);
+              setHasPlayed(false);
               setIsFloating(false);
             }}
             type="button"
